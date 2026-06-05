@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
 
 // ==========================ICONS============================================
 import {
@@ -101,6 +102,8 @@ export default function Hero() {
                 "Deploy your website instantly with one click.",
         },
     ];
+
+
 
     return (
         <main>
@@ -375,10 +378,10 @@ export default function Hero() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                         {[
-                            { name: "Personal Portfolio", tag: "Creative", color: "from-violet-600/20 to-indigo-600/10", icon: <Palette size={50} className="text-blue-400/20"/> },
-                            { name: "Restaurant & Café", tag: "Business", color: "from-amber-600/20 to-orange-600/10", icon: <Coffee size={50} className="text-amber-400/20"/> },
+                            { name: "Personal Portfolio", tag: "Creative", color: "from-violet-600/20 to-indigo-600/10", icon: <Palette size={50} className="text-blue-400/20" /> },
+                            { name: "Restaurant & Café", tag: "Business", color: "from-amber-600/20 to-orange-600/10", icon: <Coffee size={50} className="text-amber-400/20" /> },
                             { name: "Startup Landing", tag: "SaaS", color: "from-indigo-600/20 to-cyan-600/10", icon: "⚡" },
-                            { name: "Creative Agency", tag: "Agency", color: "from-pink-600/20 to-rose-600/10", icon: <Sparkles size={50} className="text-indigo-400"/> },
+                            { name: "Creative Agency", tag: "Agency", color: "from-pink-600/20 to-rose-600/10", icon: <Sparkles size={50} className="text-indigo-400" /> },
                         ].map(({ name, tag, color, icon }) => (
                             <div
                                 key={name}
@@ -417,9 +420,15 @@ export default function Hero() {
                             Join thousands of creators, startups and agencies building beautiful websites with CraftSite.
                         </p>
                         <div className="flex flex-wrap gap-4 justify-center">
-                            <button className="bg-white text-indigo-700 hover:bg-indigo-50 active:scale-95 px-8 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg">
+                            {/* <button className="bg-white text-indigo-700 hover:bg-indigo-50 active:scale-95 px-8 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg">
                                 Start Building Free
-                            </button>
+                            </button> */}
+                            <Link
+                                href="/builder"
+                                className="bg-indigo-600 hover:bg-indigo-500 active:scale-95 px-7 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg shadow-indigo-500/20 inline-flex items-center justify-center"
+                            >
+                                Start Building Free
+                            </Link>
                             <button className="border border-white/30 text-white hover:bg-white/10 px-8 py-3.5 rounded-xl font-semibold text-sm transition-all">
                                 See All Templates
                             </button>
