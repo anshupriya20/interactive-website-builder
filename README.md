@@ -159,10 +159,10 @@ This project focuses on demonstrating:
 
 ### Phase 2
 
-* [ ] Builder Layout
-* [ ] Sidebar
-* [ ] Canvas
-* [ ] Properties Panel
+* [x] Builder Layout
+* [x]  Sidebar
+* [x]  Sidebar Canvas
+* [x]  Sidebar Properties Panel
 
 ### Phase 3
 
