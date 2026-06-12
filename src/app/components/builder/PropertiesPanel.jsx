@@ -1,6 +1,12 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 
+//========================================ICONS===============================================
+import { IoDuplicate } from "react-icons/io5";
+import { MdDeleteForever } from "react-icons/md";
+import { MdMoveDown } from "react-icons/md";
+import { MdMoveUp } from "react-icons/md";
+
 // ── Sub-components defined OUTSIDE to prevent remount on render ──
 
 const Field = ({ label, children }) => (
@@ -142,6 +148,23 @@ const SelectInput = ({ value, onChange, options }) => (
   </select>
 );
 
+function SectionTitle({ children }) {
+  return (
+    <p
+      className="
+            text-xs
+            uppercase
+            tracking-widest
+            text-zinc-500
+            mt-8
+            mb-4
+        "
+    >
+      {children}
+    </p>
+  );
+}
+
 // ── Main component ───────────────────────────────────────────
 
 export default function PropertiesPanel({
@@ -149,14 +172,35 @@ export default function PropertiesPanel({
   selectedId,
   setSelectedId,
   setCanvasItems,
+  activePage,
+  pages,
+  setPages,
+  activePageId,
 }) {
-  const selectedItem = canvasItems.find((item) => item.id === selectedId);
+  // const selectedItem = canvasItems.find((item) => item.id === selectedId);
+  const selectedItem = activePage?.canvasItems?.find(
+    (item) => item.id === selectedId,
+  );
+
+  // console.log("selectedItem", selectedItem);
 
   // Directly patches one key on the selected item in canvasItems
   const update = (key, value) => {
-    setCanvasItems((prev) =>
-      prev.map((item) =>
-        item.id === selectedId ? { ...item, [key]: value } : item,
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? {
+            ...page,
+            canvasItems: page.canvasItems.map((item) =>
+              item.id === selectedId
+                ? {
+                  ...item,
+                  [key]: value,
+                }
+                : item,
+            ),
+          }
+          : page,
       ),
     );
   };
@@ -231,25 +275,50 @@ export default function PropertiesPanel({
       case "heading":
         return (
           <>
-            <Field label="Text">
+            <SectionTitle>
+              Content
+            </SectionTitle>
+            <Field label="Heading Text">
               <TextInput
                 value={selectedItem.text}
                 onChange={(val) => update("text", val)}
                 placeholder="Heading text"
               />
             </Field>
-            <Field label="Level">
+            <SectionTitle>
+              Typography
+            </SectionTitle>
+
+            <Field label="Heading Level">
               <SelectInput
                 value={selectedItem.level}
                 onChange={(val) => {
-                  const fontSizeMap = { h1: 48, h2: 36, h3: 28, h4: 22 };
+                  const fontSizeMap = {
+                    h1: 48,
+                    h2: 36,
+                    h3: 28,
+                    h4: 22,
+                    h5: 18,
+                    h6: 16,
+                  };
 
-                  setCanvasItems((prev) =>
-                    prev.map((item) =>
-                      item.id === selectedId
-                        ? { ...item, level: val, fontSize: fontSizeMap[val] }
-                        : item,
-                    ),
+                  setPages((prev) =>
+                    prev.map((page) =>
+                      page.id === activePageId
+                        ? {
+                          ...page,
+                          canvasItems: page.canvasItems.map((item) =>
+                            item.id === selectedId
+                              ? {
+                                ...item,
+                                level: val,
+                                fontSize: fontSizeMap[val],
+                              }
+                              : item
+                          ),
+                        }
+                        : page
+                    )
                   );
                 }}
                 options={[
@@ -286,7 +355,7 @@ export default function PropertiesPanel({
                 value={selectedItem.content || ""}
                 onChange={(e) => update("content", e.target.value)}
                 rows={4}
-                className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors resize-none"
+                className="w-full px-3 py-2 rounded-lg bg-zinc-800  border border-zinc-700 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors resize-none"
               />
             </Field>
             <Field label="Font Size">
@@ -310,44 +379,230 @@ export default function PropertiesPanel({
       case "button":
         return (
           <>
-            <Field label="Label">
+            <SectionTitle>
+              Content
+            </SectionTitle>
+
+            <Field label="Button Label">
               <TextInput
                 value={selectedItem.label}
                 onChange={(val) => update("label", val)}
                 placeholder="Button label"
               />
             </Field>
+
+            <Field label="Button Link">
+              <TextInput
+                value={selectedItem.href || ""}
+                onChange={(val) => update("href", val)}
+                placeholder="/about"
+              />
+            </Field>
+
+            <SectionTitle>
+              Appearance
+            </SectionTitle>
+
             <Field label="Variant">
               <SelectInput
-                value={selectedItem.variant}
-                onChange={(val) => update("variant", val)}
-                options={[
+                value={selectedItem.variant || "primary"}
+                onChange={(val) =>
+                  update("variant", val.trim())
+                } options={[
                   { value: "primary", label: "Primary" },
                   { value: "secondary", label: "Secondary" },
                   { value: "outline", label: "Outline" },
                   { value: "ghost", label: "Ghost" },
+                  { value: "danger", label: "Danger" },
+                  { value: "success", label: "Success" },
+                  { value: "warning", label: "Warning" },
+                  { value: "link", label: "Link" },
                 ]}
               />
             </Field>
-            <Field label="Font Size">
-              <NumberInput
-                value={selectedItem.fontSize}
-                onChange={(val) => update("fontSize", val)}
-                min={8}
-                max={32}
-                unit="px"
+
+            <Field label="Background Color">
+              <ColorInput
+                value={selectedItem.bgColor}
+                onChange={(val) => update("bgColor", val)}
               />
             </Field>
+
             <Field label="Text Color">
               <ColorInput
                 value={selectedItem.color}
                 onChange={(val) => update("color", val)}
               />
             </Field>
-            <Field label="Background Color">
-              <ColorInput
-                value={selectedItem.bgColor}
-                onChange={(val) => update("bgColor", val)}
+
+            {selectedItem.variant !== "ghost" &&
+              selectedItem.variant !== "link" && (
+                <>
+                  <Field label="Border Color">
+                    <ColorInput
+                      value={selectedItem.borderColor}
+                      onChange={(val) =>
+                        update("borderColor", val)
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Border Width">
+                    <NumberInput
+                      value={selectedItem.borderWidth || 1}
+                      onChange={(val) =>
+                        update("borderWidth", val)
+                      }
+                      min={0}
+                      max={10}
+                      unit="px"
+                    />
+                  </Field>
+
+                  <Field label="Border Style">
+                    <SelectInput
+                      value={
+                        selectedItem.borderStyle ||
+                        "solid"
+                      }
+                      onChange={(val) =>
+                        update("borderStyle", val)
+                      }
+                      options={[
+                        {
+                          value: "solid",
+                          label: "Solid",
+                        },
+                        {
+                          value: "dashed",
+                          label: "Dashed",
+                        },
+                        {
+                          value: "dotted",
+                          label: "Dotted",
+                        },
+                        {
+                          value: "double",
+                          label: "Double",
+                        },
+                        {
+                          value: "none",
+                          label: "None",
+                        },
+                      ]}
+                    />
+                  </Field>
+                </>
+              )}
+
+            <Field label="Border Radius">
+              <NumberInput
+                value={selectedItem.radius || 8}
+                onChange={(val) => update("radius", val)}
+                min={0}
+                max={50}
+                unit="px"
+              />
+            </Field>
+
+            <SectionTitle>
+              Typography
+            </SectionTitle>
+
+            <Field label="Font Size">
+              <NumberInput
+                value={selectedItem.fontSize || 16}
+                onChange={(val) => update("fontSize", val)}
+                min={8}
+                max={48}
+                unit="px"
+              />
+            </Field>
+
+            <Field label="Font Weight">
+              <SelectInput
+                value={selectedItem.fontWeight || "500"}
+                onChange={(val) =>
+                  update("fontWeight", val)
+                }
+                options={[
+                  {
+                    value: "400",
+                    label: "Regular",
+                  },
+                  {
+                    value: "500",
+                    label: "Medium",
+                  },
+                  {
+                    value: "600",
+                    label: "Semi Bold",
+                  },
+                  {
+                    value: "700",
+                    label: "Bold",
+                  },
+                ]}
+              />
+            </Field>
+
+            <Field label="Text Transform">
+              <SelectInput
+                value={
+                  selectedItem.textTransform ||
+                  "none"
+                }
+                onChange={(val) =>
+                  update("textTransform", val)
+                }
+                options={[
+                  {
+                    value: "none",
+                    label: "Normal",
+                  },
+                  {
+                    value: "uppercase",
+                    label: "UPPERCASE",
+                  },
+                  {
+                    value: "lowercase",
+                    label: "lowercase",
+                  },
+                  {
+                    value: "capitalize",
+                    label: "Capitalize",
+                  },
+                ]}
+              />
+            </Field>
+
+            <Field label="Letter Spacing">
+              <NumberInput
+                value={
+                  selectedItem.letterSpacing || 0
+                }
+                onChange={(val) =>
+                  update("letterSpacing", val)
+                }
+                min={0}
+                max={10}
+                unit="px"
+              />
+            </Field>
+
+            <SectionTitle>
+              Layout
+            </SectionTitle>
+
+            <Field label="Size">
+              <SelectInput
+                value={selectedItem.size || "md"}
+                onChange={(val) => update("size", val)}
+                options={[
+                  { value: "sm", label: "Small" },
+                  { value: "md", label: "Medium" },
+                  { value: "lg", label: "Large" },
+                ]}
               />
             </Field>
           </>
@@ -356,6 +611,8 @@ export default function PropertiesPanel({
       case "image":
         return (
           <>
+            <SectionTitle>General</SectionTitle>
+
             <Field label="Image URL">
               <TextInput
                 value={selectedItem.src}
@@ -363,6 +620,7 @@ export default function PropertiesPanel({
                 placeholder="https://..."
               />
             </Field>
+
             <Field label="Alt Text">
               <TextInput
                 value={selectedItem.alt}
@@ -370,6 +628,9 @@ export default function PropertiesPanel({
                 placeholder="Image description"
               />
             </Field>
+
+            <SectionTitle>Size</SectionTitle>
+
             <Field label="Width">
               <NumberInput
                 value={selectedItem.width}
@@ -396,6 +657,10 @@ export default function PropertiesPanel({
       case "textarea":
         return (
           <>
+            <SectionTitle>
+              Content
+            </SectionTitle>
+
             <Field label="Label">
               <TextInput
                 value={selectedItem.label}
@@ -408,6 +673,7 @@ export default function PropertiesPanel({
                 value={selectedItem.placeholder}
                 onChange={(val) => update("placeholder", val)}
                 placeholder="Placeholder text"
+                style={{ height: "32px", display: "overflow-y-scroll" }}
               />
             </Field>
           </>
@@ -415,6 +681,8 @@ export default function PropertiesPanel({
       case "checkbox":
         return (
           <>
+            <SectionTitle>Content</SectionTitle>
+
             <Field label="Label">
               <TextInput
                 value={selectedItem.label}
@@ -427,6 +695,8 @@ export default function PropertiesPanel({
       case "radiobutton":
         return (
           <>
+            <SectionTitle>Content</SectionTitle>
+
             <Field label="Option 1">
               <TextInput
                 value={selectedItem.options[0]}
@@ -464,37 +734,164 @@ export default function PropertiesPanel({
     }
   };
 
+  const duplicateComponent = () => {
+    const component = activePage.canvasItems.find(
+      (item) => item.id === selectedId,
+    );
+
+    if (!component) return;
+
+    const copy = {
+      ...component,
+      id: Date.now(),
+    };
+
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? {
+            ...page,
+            canvasItems: [...page.canvasItems, copy],
+          }
+          : page,
+      ),
+    );
+  };
+
+  const moveUp = () => {
+    const items = [...activePage.canvasItems];
+
+    const index = items.findIndex((item) => item.id === selectedId);
+
+    if (index <= 0) return;
+
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
+
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? {
+            ...page,
+            canvasItems: items,
+          }
+          : page,
+      ),
+    );
+  };
+
+  const moveDown = () => {
+    const items = [...activePage.canvasItems];
+
+    const index = items.findIndex((item) => item.id === selectedId);
+
+    if (index === items.length - 1) return;
+
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? {
+            ...page,
+            canvasItems: items,
+          }
+          : page,
+      ),
+    );
+  };
+
   return (
     <aside className="w-80 border-l border-zinc-800 bg-[#111111] p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-sm font-semibold text-zinc-400">Properties</h2>
-        <span className="text-[10px] font-semibold uppercase tracking-widest px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-          {selectedItem.type}
-        </span>
+        <div className="sticky top-0 z-10 bg-[#0F0F0F] pb-4 border-b border-zinc-800">
+          <h2 className="text-lg font-semibold">Properties</h2>
+
+          {selectedItem && (
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className="
+                px-2 py-1
+                rounded-md
+                bg-indigo-500/10
+                text-indigo-400
+                text-xs
+                uppercase
+            "
+              >
+                {selectedItem.type}
+              </span>
+
+              <span className="text-zinc-500 text-sm">Selected Component</span>
+            </div>
+          )}
+        </div>
       </div>
       <div>{renderFields()}</div>
-      <button
-        onClick={() => {
-          setCanvasItems(prev =>
-            prev.filter(
-              item =>
-                item.id !== selectedId
-            )
-          );
+      <SectionTitle>Actions</SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
+        <button
+          // onClick={() => {
+          //   setCanvasItems(prev =>
+          //     prev.filter(
+          //       item =>
+          //         item.id !== selectedId
+          //     )
+          //   );
 
-          setSelectedId(null);
-        }}
-        className="
-    w-full
-    mt-6
-    bg-red-600
-    hover:bg-red-500
-    rounded-lg
-    py-3
-  "
-      >
-        Delete Component
-      </button>
+          //   setSelectedId(null);
+          // }}
+          onClick={() => {
+            setPages((prev) =>
+              prev.map((page) =>
+                page.id === activePageId
+                  ? {
+                    ...page,
+                    canvasItems: page.canvasItems.filter(
+                      (item) => item.id !== selectedId,
+                    ),
+                  }
+                  : page,
+              ),
+            );
+
+            setSelectedId(null);
+          }}
+          className="mt-6 bg-red-600 hover:bg-red-500 rounded-lg p-2 flex gap-2 justify-center items-center"
+
+        >
+          <span>
+            Delete
+          </span>
+          <MdDeleteForever size={18} />
+        </button>
+        <button
+          onClick={duplicateComponent}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>
+            Duplicate
+          </span>
+          <IoDuplicate size={18} className="text-center" />
+        </button>
+        <button
+          onClick={moveUp}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>
+            Move Up
+          </span>
+          <MdMoveUp size={18} />
+        </button>
+        <button
+          onClick={moveDown}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>
+            Move Down
+          </span>
+          <MdMoveDown size={18} />
+        </button>
+      </div>
     </aside>
   );
 }
