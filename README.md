@@ -151,38 +151,31 @@ This project focuses on demonstrating:
 
 ## 📈 Roadmap
 
-### Phase 1
+### V2.5 ✅ Completed
+- [x] Multi-page Builder
+- [x] Sidebar Search + Icons
+- [x] CanvasBlock Architecture
+- [x] Dynamic Properties Panel
+- [x] Save / Load Projects
+- [x] Duplicate Components
+- [x] Move Components Up / Down
+- [x] Button Builder V2
+- [x] Git Tag: v2.5
 
-* [x] Landing Page
-* [x] Responsive Design
-* [x] GSAP Animations
+### V3 🚀 In Progress
+- [ ] Preview Mode
+- [ ] Export JSON
+- [ ] Import JSON
 
-### Phase 2
+### V4 🔜 Planned
+- [ ] Drag & Drop
+- [ ] Nested Components
+- [ ] Undo / Redo
 
-* [x] Builder Layout
-* [x]  Sidebar
-* [x]  Sidebar Canvas
-* [x]  Sidebar Properties Panel
-
-### Phase 3
-
-* [ ] Drag & Drop
-* [ ] Component Editing
-* [ ] Dynamic Rendering
-
-### Phase 4
-
-* [ ] Backend Integration
-* [ ] MySQL Database
-* [ ] User Authentication
-
-### Phase 5
-
-* [ ] Project Saving
-* [ ] Export Functionality
-* [ ] Deployment
-
----
+### V5 ☁ Planned
+- [ ] Authentication
+- [ ] Database Integration
+- [ ] Website Publishing
 
 ##  Screenshots
 
