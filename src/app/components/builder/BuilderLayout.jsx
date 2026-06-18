@@ -20,6 +20,7 @@ export default function BuilderLayout() {
     ]);
 
     const [activePageId, setActivePageId] = useState("home");
+    const [previewMode, setPreviewMode] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem(
@@ -68,54 +69,59 @@ export default function BuilderLayout() {
 
     return (
         <div className="h-screen bg-black text-white flex flex-col">
-            <BuilderNavbar setCanvasItems={setCanvasItems} setPages={setPages}
-    setActivePageId={setActivePageId}
-    setSelectedId={setSelectedId}/>
+            <BuilderNavbar
+                pages={pages}
+                setPages={setPages}
+                setCanvasItems={setCanvasItems}
+                setActivePageId={setActivePageId}
+                setSelectedId={setSelectedId}
+                previewMode={previewMode}
+                setPreviewMode={setPreviewMode}
+            />
 
             <div className="flex flex-1 min-h-0 overflow-hidden">
-                <PageSidebar
-                    pages={pages}
-                    activePageId={activePageId}
-                    setActivePageId={setActivePageId}
-                    setPages={setPages}
-                />
-                {/* <BuilderSidebar
-                    canvasItems={canvasItems}
-                    setCanvasItems={setCanvasItems}
-                /> */}
-                <BuilderSidebar
-                    pages={pages}
-                    setPages={setPages}
-                    activePageId={activePageId}
-                />
-                {/* <BuilderCanvas
-          // canvasItems={canvasItems}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          canvasItems={activePage.canvasItems}
-        /> */}
-                <BuilderCanvas
-                    canvasItems={activePage?.canvasItems || []}
-                    selectedId={selectedId}
-                    setSelectedId={setSelectedId}
-                    activePage={activePage}
-                />
-                {/* <PropertiesPanel
-                    canvasItems={canvasItems}
-                    selectedId={selectedId}
-                    setSelectedId={setSelectedId}
-                    setCanvasItems={setCanvasItems}
-                /> */}
-                <PropertiesPanel
-                    activePage={activePage}
-                    selectedId={selectedId}
-                    setSelectedId={setSelectedId}
-                    pages={pages}
-                    setPages={setPages}
-                    activePageId={activePageId}
-                                        setCanvasItems={setCanvasItems}
+                {previewMode ? (
+                    <BuilderCanvas
+                        canvasItems={activePage?.canvasItems || []}
+                        selectedId={selectedId}
+                        setSelectedId={setSelectedId}
+                        activePage={activePage}
+                        previewMode={previewMode}
+                    />
+                ) : (
+                    <>
+                        <PageSidebar
+                            pages={pages}
+                            activePageId={activePageId}
+                            setActivePageId={setActivePageId}
+                            setPages={setPages}
+                        />
 
-                />
+                        <BuilderSidebar
+                            pages={pages}
+                            setPages={setPages}
+                            activePageId={activePageId}
+                        />
+
+                        <BuilderCanvas
+                            canvasItems={activePage?.canvasItems || []}
+                            selectedId={selectedId}
+                            setSelectedId={setSelectedId}
+                            activePage={activePage}
+                            previewMode={previewMode}
+                        />
+
+                        <PropertiesPanel
+                            activePage={activePage}
+                            selectedId={selectedId}
+                            setSelectedId={setSelectedId}
+                            pages={pages}
+                            setPages={setPages}
+                            activePageId={activePageId}
+                            setCanvasItems={setCanvasItems}
+                        />
+                    </>
+                )}
             </div>
         </div>
     );

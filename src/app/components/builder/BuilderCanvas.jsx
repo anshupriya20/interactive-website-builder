@@ -12,23 +12,41 @@ export default function BuilderCanvas({
   canvasItems,
   selectedId,
   setSelectedId,
+  previewMode,
+
   // activePage,
 }) {
-  const selectedClass = (id) =>
-    selectedId === id
+  // const selectedClass = (id) =>
+  //   selectedId === id
+  //     ? "outline outline-2 outline-indigo-500 outline-offset-2"
+  //     : "outline outline-1 outline-transparent hover:outline-zinc-600 outline-offset-2";
+
+  const selectedClass = (id) => {
+    if (previewMode) return "";
+
+    return selectedId === id
       ? "outline outline-2 outline-indigo-500 outline-offset-2"
       : "outline outline-1 outline-transparent hover:outline-zinc-600 outline-offset-2";
-
+  };
   return (
     <main className="flex-1 bg-[#0A0A0A] min-h-0 overflow-auto p-8">
-      <div className="mx-auto max-w-5xl">
+      {/* <div className="mx-auto max-w-5xl"> */}
+      <div
+        className={
+          previewMode
+            ? "w-full"
+            : "mx-auto max-w-5xl"
+        }
+      >
         <div className="min-h-[1200px] rounded-2xl border border-zinc-800 bg-[#111111] shadow-2xl">
           {/* Browser Bar */}
-          <div className="h-12 border-b border-zinc-800 flex items-center px-4 gap-2">
-            <div className="h-3 w-3 rounded-full bg-red-500" />
-            <div className="h-3 w-3 rounded-full bg-yellow-500" />
-            <div className="h-3 w-3 rounded-full bg-green-500" />
-          </div>
+          {!previewMode && (
+            <div className="h-12 border-b border-zinc-800 flex items-center px-4 gap-2">
+              <div className="h-3 w-3 rounded-full bg-red-500" />
+              <div className="h-3 w-3 rounded-full bg-yellow-500" />
+              <div className="h-3 w-3 rounded-full bg-green-500" />
+            </div>
+          )}
 
           {/* Canvas Content */}
           <div className="p-8">
@@ -59,7 +77,12 @@ export default function BuilderCanvas({
               canvasItems?.map((item) => {
                 if (!item) return null;
 
-                const onClick = () => setSelectedId(item.id);
+                // const onClick = () => setSelectedId(item.id);
+                const onClick = () => {
+                  if (previewMode) return;
+
+                  setSelectedId(item.id);
+                };
                 const sel = selectedClass(item.id);
 
                 switch (item.type) {
@@ -70,6 +93,7 @@ export default function BuilderCanvas({
                         title="Section"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <div
@@ -92,6 +116,7 @@ export default function BuilderCanvas({
                         title="Container"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <div
@@ -114,6 +139,7 @@ export default function BuilderCanvas({
                         title="Grid"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <div
@@ -157,6 +183,7 @@ export default function BuilderCanvas({
                         title="Heading"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
                         <HeadingTag
                           style={{
@@ -179,6 +206,7 @@ export default function BuilderCanvas({
                         title="Text"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
                         <p
                           key={item.id}
@@ -236,6 +264,7 @@ export default function BuilderCanvas({
                         title="Button"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
                         <button
                           style={{
@@ -283,10 +312,7 @@ export default function BuilderCanvas({
                                 ? `${item.radius}px`
                                 : "8px",
                           }}
-                          className={`
-          pointer-events-none
-          transition-all
-          font-medium
+                          className={`pointer-events-none transition-all font-medium m-5
 
           ${variantClass[
                             item.variant || "primary"
@@ -346,6 +372,7 @@ export default function BuilderCanvas({
                         title="Image"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
                         {item.src ? (
                           <img
@@ -390,6 +417,7 @@ export default function BuilderCanvas({
                         title="Input Field"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <div
@@ -416,12 +444,13 @@ export default function BuilderCanvas({
                         title="TextArea"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <div
                           key={item.id}
                           onClick={onClick}
-                          className={`mb-4 p-2 cursor-pointer rounded-lg transition-all ${sel}`}
+                          className={`mb-4 p-2 cursor-pointer rounded-lg transition-all ${selectedClass(item.id)}`}
                         >
                           <label className="block text-sm mb-2 text-zinc-400 break-all">
                             {item.label}
@@ -443,12 +472,13 @@ export default function BuilderCanvas({
                         title="Checkbox"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <label
                           key={item.id}
                           onClick={onClick}
-                          className={` flex items-center gap-3 mb-4 p-3 rounded-lg cursor-pointer  ${sel} `}
+                          className={` flex items-center gap-3 mb-4 p-3 rounded-lg cursor-pointer  ${selectedClass(item.id)} `}
                         >
                           <input type="checkbox" />
                           <span>{item.label}</span>
@@ -463,12 +493,13 @@ export default function BuilderCanvas({
                         title="Radio Button"
                         selected={selectedId === item.id}
                         onClick={onClick}
+                        previewMode={previewMode}
                       >
 
                         <div
                           key={item.id}
                           onClick={onClick}
-                          className={`  mb-4 p-3  rounded-lg cursor-pointer ${sel}  `}
+                          className={`  mb-4 p-3  rounded-lg cursor-pointer ${selectedClass(item.id)}  `}
                         >
                           {item.options.map((option, index) => (
                             <label
@@ -484,67 +515,69 @@ export default function BuilderCanvas({
                       </CanvasBlock>
                     );
 
-                  case "section":
-                    return (
-                      <CanvasBlock
-                        key={item.id}
-                        title="Section"
-                        selected={selectedId === item.id}
-                        onClick={onClick}
-                      >
+                  // case "section":
+                  //   return (
+                  //     <CanvasBlock
+                  //       key={item.id}
+                  //       title="Section"
+                  //       selected={selectedId === item.id}
+                  //       onClick={onClick}
+                  //       previewMode={previewMode}
+                  //     >
 
-                        <div
-                          key={item.id}
-                          onClick={onClick}
-                          className={`border-2 border-dashed border-indigo-500/30 rounded-xl p-10 mb-4 cursor-pointer transition-all ${sel}`}
-                        >
-                          <span className="text-xs text-zinc-600 uppercase tracking-widest">
-                            Section
-                          </span>
-                        </div>
-                      </CanvasBlock>
-                    );
+                  //       <div
+                  //         key={item.id}
+                  //         onClick={onClick}
+                  //         className={`border-2 border-dashed border-indigo-500/30 rounded-xl p-10 mb-4 cursor-pointer transition-all ${selectedClass(item.id)}`}
+                  //       >
+                  //         <span className="text-xs text-zinc-600 uppercase tracking-widest">
+                  //           Section
+                  //         </span>
+                  //       </div>
+                  //     </CanvasBlock>
+                  //   );
 
-                  case "container":
-                    return (
-                      <CanvasBlock
-                        key={item.id}
-                        title="Container"
-                        selected={selectedId === item.id}
-                        onClick={onClick}
-                      >
+                  // case "container":
+                  //   return (
+                  //     <CanvasBlock
+                  //       key={item.id}
+                  //       title="Container"
+                  //       selected={selectedId === item.id}
+                  //       onClick={onClick}
+                  //     >
 
-                        <div
-                          key={item.id}
-                          onClick={onClick}
-                          className={`max-w-5xl mx-auto border border-zinc-700 rounded-xl p-8 mb-4 cursor-pointer transition-all ${sel}`}
-                        >
-                          <span className="text-xs text-zinc-600 uppercase tracking-widest">
-                            Container
-                          </span>
-                        </div>
-                      </CanvasBlock>
-                    );
+                  //       <div
+                  //         key={item.id}
+                  //         onClick={onClick}
+                  //         className={`max-w-5xl mx-auto border border-zinc-700 rounded-xl p-8 mb-4 cursor-pointer transition-all ${selectedClass(item.id)}`}
+                  //       >
+                  //         <span className="text-xs text-zinc-600 uppercase tracking-widest">
+                  //           Container
+                  //         </span>
+                  //       </div>
+                  //     </CanvasBlock>
+                  //   );
 
-                  case "grid":
-                    return (
-                      <CanvasBlock
-                        key={item.id}
-                        title="Grid"
-                        selected={selectedId === item.id}
-                        onClick={onClick}
-                      >
+                  // case "grid":
+                  //   return (
+                  //     <CanvasBlock
+                  //       key={item.id}
+                  //       title="Grid"
+                  //       selected={selectedId === item.id}
+                  //       onClick={onClick}
+                  //       previewMode={previewMode}
+                  //     >
 
-                        <div
-                          key={item.id}
-                          onClick={onClick}
-                          className={`grid grid-cols-2 gap-4 mb-4 p-2 cursor-pointer rounded-lg transition-all ${sel}`}
-                        >
-                          <div className="h-24 rounded-lg bg-zinc-800" />
-                          <div className="h-24 rounded-lg bg-zinc-800" />
-                        </div>
-                      </CanvasBlock>
-                    );
+                  //       <div
+                  //         key={item.id}
+                  //         onClick={onClick}
+                  //         className={`grid grid-cols-2 gap-4 mb-4 p-2 cursor-pointer rounded-lg transition-all ${selectedClass(item.id)}`}
+                  //       >
+                  //         <div className="h-24 rounded-lg bg-zinc-800" />
+                  //         <div className="h-24 rounded-lg bg-zinc-800" />
+                  //       </div>
+                  //     </CanvasBlock>
+                  //   );
 
                   default:
                     return (
