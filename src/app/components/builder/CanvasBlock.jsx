@@ -3,7 +3,12 @@ export default function CanvasBlock({
   selected,
   children,
   onClick,
+  previewMode,
+
 }) {
+  if (previewMode) {
+    return children;
+  }
   return (
     <div
       onClick={onClick}
@@ -13,10 +18,9 @@ export default function CanvasBlock({
         rounded-2xl
         transition-all
 
-        ${
-          selected
-            ? "border border-indigo-500 shadow-lg shadow-indigo-500/10"
-            : "border border-zinc-800"
+        ${selected
+          ? "border border-indigo-500 shadow-lg shadow-indigo-500/10"
+          : "border border-zinc-800"
         }
       `}
     >
