@@ -1,86 +1,83 @@
-# 🚀 Interactive Website Builder
+# 🚀 CraftSite – Interactive Website Builder
 
-A modern drag-and-drop website builder inspired by Builder.io, Framer, and Webflow.
+A modern visual website builder inspired by Builder.io, Framer, and Webflow.
 
-Build responsive websites visually using reusable components, live editing, and a powerful visual canvas — without writing code.
+CraftSite allows users to build responsive websites visually using reusable components, live editing, project management, and real-time website previews — without writing code.
 
 ---
 
 ## 🌐 Overview
 
-Interactive Website Builder is a full-stack web application that allows users to create websites using a visual editor.
+CraftSite is a no-code/low-code website builder focused on providing a modern visual editing experience.
 
-The goal of this project is to provide a no-code/low-code experience where users can:
+Users can:
 
-* Add website components
-* Customize content and styling
-* Rearrange sections visually
-* Save projects
-* Export website configurations
-* Publish websites
-
-This project is being built as a production-level application using modern web technologies.
+* Add and customize components
+* Build multi-page websites
+* Edit content visually
+* Save and restore projects
+* Import / Export project files
+* Preview websites in real-time
+* Prepare websites for future publishing
 
 ---
 
 ## ✨ Current Features
 
-### Landing Page
+### Builder Core
 
-* Modern SaaS-inspired UI
-* Fully responsive design
-* GSAP animations
-* Smooth scroll interactions
-* Interactive feature sections
-* Responsive footer
-* Mobile-first experience
-
----
-
-## 🛠 Planned Features
-
-### Builder
-
-* Visual canvas editor
-* Component sidebar
-* Properties panel
-* Real-time preview
-* Drag & drop components
-* Reordering sections
-* Undo / Redo
+* Multi-page website builder
+* Component sidebar with search
+* Component selection
+* Component editing
+* Component duplication
+* Component deletion
+* Move components up/down
+* Dynamic properties panel
 
 ### Components
 
+Currently implemented:
+
 * Heading
 * Text
-* Button
 * Image
-* Hero Section
-* Feature Grid
-* Pricing Section
-* Testimonials
-* Footer
+* Button
+* Input
+* Textarea
+* Checkbox
+* Radio Button
+* Section
+* Container
+* Grid
+
+### Styling Controls
+
+* Colors
+* Typography
+* Font Size
+* Font Weight
+* Text Transform
+* Border Radius
+* Border Width
+* Border Style
+* Border Color
+* Button Variants
 
 ### Project Management
 
-* Create project
-* Save project
-* Edit project
-* Delete project
-* Duplicate project
+* Local Storage Persistence
+* Save Project
+* Load Project
+* Clear Project
+* Multi-Page Support
 
-### Export
+### Preview & Export
 
-* JSON Export
-* HTML Export
-* Website Preview
-
-### Backend
-
-* Authentication
-* User Projects
-* Database Storage
-* API Layer
+* Preview Mode
+* Export Project JSON
+* Import Project JSON
+* Versioned Project Structure
 
 ---
 
@@ -91,8 +88,8 @@ This project is being built as a production-level application using modern web t
 * Next.js 16
 * React
 * Tailwind CSS
-* GSAP
-* JavaScript
+* React Hot Toast
+* React Icons
 
 ### Backend (Planned)
 
@@ -114,70 +111,106 @@ This project is being built as a production-level application using modern web t
 src/
 
 app/
- ├── page.jsx
- ├── builder/
- │    └── page.jsx
+├── page.jsx
+├── builder/
+│   └── page.jsx
 
 components/
- ├── landing/
- │    ├── Navbar.jsx
- │    ├── Hero.jsx
- │    ├── Features.jsx
- │    ├── Templates.jsx
- │    ├── Footer.jsx
- │
- └── builder/
-      ├── BuilderSidebar.jsx
-      ├── BuilderCanvas.jsx
-      ├── PropertiesPanel.jsx
+├── landing/
+│   ├── Navbar.jsx
+│   ├── Hero.jsx
+│   ├── Features.jsx
+│   ├── Templates.jsx
+│   └── Footer.jsx
 
-utils/
-constants/
+└── builder/
+    ├── BuilderNavbar.jsx
+    ├── BuilderSidebar.jsx
+    ├── BuilderCanvas.jsx
+    ├── PageSidebar.jsx
+    ├── PropertiesPanel.jsx
+    └── CanvasBlock.jsx
 ```
-
-## 🎯 Project Goals
-
-This project focuses on demonstrating:
-
-* Frontend Architecture
-* Component Design Systems
-* State Management
-* Drag & Drop Interfaces
-* Full-Stack Development
-* Modern UI/UX Design
-* Performance Optimization
 
 ---
 
 ## 📈 Roadmap
 
 ### V2.5 ✅ Completed
-- [x] Multi-page Builder
-- [x] Sidebar Search + Icons
-- [x] CanvasBlock Architecture
-- [x] Dynamic Properties Panel
-- [x] Save / Load Projects
-- [x] Duplicate Components
-- [x] Move Components Up / Down
-- [x] Button Builder V2
-- [x] Git Tag: v2.5
 
-### V3 🚀 In Progress
-- [ ] Preview Mode
-- [ ] Export JSON
-- [ ] Import JSON
+* Multi-page Builder
+* Sidebar Search + Icons
+* CanvasBlock Architecture
+* Dynamic Properties Panel
+* Save / Load Projects
+* Duplicate Components
+* Move Components Up / Down
+* Button Builder V2
 
-### V4 🔜 Planned
-- [ ] Drag & Drop
-- [ ] Nested Components
-- [ ] Undo / Redo
+### V3.0 ✅ Completed
+
+* Preview Mode
+* Export JSON
+* Import JSON
+* Improved Builder Toolbar
+* Project Portability
+
+### V4 🚀 Next
+
+* Nested Components
+* Recursive Rendering
+* Parent / Child Component Structure
+* Real Website Layout System
+
+### V4.5
+
+* Drag & Drop Builder
+* Component Reordering via Drag & Drop
 
 ### V5 ☁ Planned
-- [ ] Authentication
-- [ ] Database Integration
-- [ ] Website Publishing
 
-##  Screenshots
+* Authentication
+* User Dashboard
+* Database Integration
+* Project Storage
+* Team Collaboration
+
+### V6 🌍 Planned
+
+* Website Publishing
+* Custom Domains
+* Generated Static Sites
+* Deployment Pipeline
+
+---
+
+## 🎯 Project Goals
+
+CraftSite focuses on demonstrating:
+
+* Frontend Architecture
+* Component-Based Design Systems
+* Visual Builder Development
+* State Management
+* Dynamic Rendering
+* Modern UI/UX Design
+* Full-Stack Application Development
+
+---
+
+## 🏷 Version History
+
+### v2.5
+
+Builder Core Complete
+
+### v3.0
+
+Preview, Import & Export System
+
+---
+
+## 📸 Screenshots
 
 Coming Soon
 
@@ -189,18 +222,21 @@ Coming Soon
 
 ---
 
-##  Author
+## 👨‍💻 Author
 
 Anshu Priya
 
 Full Stack Developer
 
 Tech Stack:
-React • Next.js • Node.js • Express.js • MongoDB • MySQL • Tailwind CSS • GSAP
+React • Next.js • Node.js • Express.js • MySQL • Tailwind CSS
 
 ---
 
-##  Status
+## 🚧 Status
 
-Currently in active development.
-New features and improvements are being added regularly.
+Active Development
+
+Current Version: **v3.0**
+
+Next Milestone: **V4 – Nested Components & Real Website Structure**
