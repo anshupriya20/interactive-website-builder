@@ -6,6 +6,12 @@ import { IoDuplicate } from "react-icons/io5";
 import { MdDeleteForever } from "react-icons/md";
 import { MdMoveDown } from "react-icons/md";
 import { MdMoveUp } from "react-icons/md";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
+// ========================================COMPONENTS==========================================
+import { updateItemById, findItemById, findLocation, removeItemById, insertAtTarget } from "../utils/treeUtils";
+import { createGridCells } from "./componentTemplates";
+
 
 // ── Sub-components defined OUTSIDE to prevent remount on render ──
 
@@ -56,8 +62,7 @@ const PRESETS = [
 
 const isValidHex = (h) => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(h);
 
-// ColorInput keeps local hex string so user can type freely.
-// Only calls onChange when hex is valid — this updates canvasItems.
+
 const ColorInput = ({ value, onChange }) => {
   const [hex, setHex] = useState(value || "#ffffff");
   const swatchRef = useRef(null);
@@ -168,40 +173,51 @@ function SectionTitle({ children }) {
 // ── Main component ───────────────────────────────────────────
 
 export default function PropertiesPanel({
-  canvasItems,
   selectedId,
   setSelectedId,
-  setCanvasItems,
   activePage,
   pages,
   setPages,
   activePageId,
 }) {
-  // const selectedItem = canvasItems.find((item) => item.id === selectedId);
-  const selectedItem = activePage?.canvasItems?.find(
-    (item) => item.id === selectedId,
-  );
+  const [collapsed, setCollapsed] = useState(false);
 
-  // console.log("selectedItem", selectedItem);
+  const selectedItem = activePage?.canvasItems
+    ? findItemById(activePage.canvasItems, selectedId)
+    : null;
 
-  // Directly patches one key on the selected item in canvasItems
   const update = (key, value) => {
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? { ...page, canvasItems: updateItemById(page.canvasItems, selectedId, (item) => ({ ...item, [key]: value })) }
+          : page
+      )
+    );
+  };
+
+  const updateGridDimensions = (columns, rows) => {
     setPages((prev) =>
       prev.map((page) =>
         page.id === activePageId
           ? {
             ...page,
-            canvasItems: page.canvasItems.map((item) =>
-              item.id === selectedId
-                ? {
-                  ...item,
-                  [key]: value,
-                }
-                : item,
-            ),
+            canvasItems: updateItemById(page.canvasItems, selectedId, (item) => {
+              const targetCount = Math.max(1, columns) * Math.max(1, rows);
+              const existing = item.children || [];
+              let newCells;
+              if (targetCount <= existing.length) {
+
+                newCells = existing.slice(0, targetCount);
+              } else {
+
+                newCells = [...existing, ...createGridCells(1, targetCount - existing.length)];
+              }
+              return { ...item, columns, rows, children: newCells };
+            }),
           }
-          : page,
-      ),
+          : page
+      )
     );
   };
 
@@ -224,42 +240,67 @@ export default function PropertiesPanel({
     switch (selectedItem.type) {
       case "section":
         return (
-          <Field label="Padding">
-            <NumberInput
-              value={selectedItem.padding}
-              onChange={(val) => update("padding", val)}
-              min={0}
-              max={200}
-              unit="px"
-            />
-          </Field>
+          <>
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={0}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+            <Field label="Padding">
+              <NumberInput value={selectedItem.padding} onChange={(val) => update("padding", val)} min={0} max={200} unit="px" />
+            </Field>
+          </>
         );
 
       case "container":
         return (
-          <Field label="Max Width">
-            <NumberInput
-              value={selectedItem.maxWidth}
-              onChange={(val) => update("maxWidth", val)}
-              min={300}
-              max={2000}
-              unit="px"
-            />
-          </Field>
+          <>
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={0}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+            <Field label="Max Width">
+              <NumberInput value={selectedItem.maxWidth} onChange={(val) => update("maxWidth", val)} min={300} max={2000} unit="px" />
+            </Field>
+          </>
         );
-
       case "grid":
         return (
           <>
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={0}
+                max={2000}
+                unit="px"
+              />
+            </Field>
             <Field label="Columns">
               <NumberInput
                 value={selectedItem.columns}
-                onChange={(val) => update("columns", val)}
+                onChange={(val) => updateGridDimensions(val, selectedItem.rows || 1)}
                 min={1}
                 max={6}
               />
             </Field>
-
+            <Field label="Rows">
+              <NumberInput
+                value={selectedItem.rows || 1}
+                onChange={(val) => updateGridDimensions(selectedItem.columns, val)}
+                min={1}
+                max={6}
+              />
+            </Field>
             <Field label="Gap">
               <NumberInput
                 value={selectedItem.gap}
@@ -699,7 +740,8 @@ export default function PropertiesPanel({
 
             <Field label="Option 1">
               <TextInput
-                value={selectedItem.options[0]}
+                // value={selectedItem.options[0]}
+                value={selectedItem.options?.[0] || ""}
                 onChange={(val) => {
                   const updated = [...selectedItem.options];
 
@@ -734,82 +776,82 @@ export default function PropertiesPanel({
     }
   };
 
-  const duplicateComponent = () => {
-    const component = activePage.canvasItems.find(
-      (item) => item.id === selectedId,
-    );
-
-    if (!component) return;
-
-    const copy = {
-      ...component,
-      id: Date.now(),
+  function cloneWithNewIds(item) {
+    return {
+      ...item,
+      id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+      children: item.children ? item.children.map(cloneWithNewIds) : item.children,
     };
+  }
 
+  const duplicateComponent = () => {
     setPages((prev) =>
-      prev.map((page) =>
-        page.id === activePageId
-          ? {
-            ...page,
-            canvasItems: [...page.canvasItems, copy],
-          }
-          : page,
-      ),
+      prev.map((page) => {
+        if (page.id !== activePageId) return page;
+        const original = findItemById(page.canvasItems, selectedId);
+        const loc = findLocation(page.canvasItems, selectedId);
+        if (!original || !loc) return page;
+        const copy = cloneWithNewIds(original);
+        return { ...page, canvasItems: insertAtTarget(page.canvasItems, loc.parentId, loc.index + 1, copy) };
+      })
     );
   };
 
-  const moveUp = () => {
-    const items = [...activePage.canvasItems];
+  const swapAtIndex = (arr, i, j) => {
+    const copy = [...arr];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    return copy;
+  };
 
-    const index = items.findIndex((item) => item.id === selectedId);
-
-    if (index <= 0) return;
-
-    [items[index - 1], items[index]] = [items[index], items[index - 1]];
-
+  const moveWithinParent = (direction) => {
     setPages((prev) =>
-      prev.map((page) =>
-        page.id === activePageId
-          ? {
-            ...page,
-            canvasItems: items,
-          }
-          : page,
-      ),
+      prev.map((page) => {
+        if (page.id !== activePageId) return page;
+        const loc = findLocation(page.canvasItems, selectedId);
+        if (!loc) return page;
+        const targetIndex = loc.index + direction;
+
+        if (loc.parentId === null) {
+          if (targetIndex < 0 || targetIndex >= page.canvasItems.length) return page;
+          return { ...page, canvasItems: swapAtIndex(page.canvasItems, loc.index, targetIndex) };
+        }
+
+        const parent = findItemById(page.canvasItems, loc.parentId);
+        if (!parent || targetIndex < 0 || targetIndex >= (parent.children?.length || 0)) return page;
+
+        return {
+          ...page,
+          canvasItems: updateItemById(page.canvasItems, loc.parentId, (p) => ({
+            ...p,
+            children: swapAtIndex(p.children, loc.index, targetIndex),
+          })),
+        };
+      })
     );
   };
 
-  const moveDown = () => {
-    const items = [...activePage.canvasItems];
-
-    const index = items.findIndex((item) => item.id === selectedId);
-
-    if (index === items.length - 1) return;
-
-    [items[index], items[index + 1]] = [items[index + 1], items[index]];
-
-    setPages((prev) =>
-      prev.map((page) =>
-        page.id === activePageId
-          ? {
-            ...page,
-            canvasItems: items,
-          }
-          : page,
-      ),
-    );
-  };
+  const moveUp = () => moveWithinParent(-1);
+  const moveDown = () => moveWithinParent(1);
 
   return (
-    <aside className="w-80 border-l border-zinc-800 bg-[#111111] p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="sticky top-0 z-10 bg-[#0F0F0F] pb-4 border-b border-zinc-800">
-          <h2 className="text-lg font-semibold">Properties</h2>
+    <aside className={`${collapsed ? "w-14" : "w-80"} shrink-0 transition-all duration-200 border-l border-zinc-800 bg-[#111111] p-4 overflow-y-auto relative`}>
+      <button
+        onClick={() => setCollapsed((v) => !v)}
+        className="absolute top-4 left-3 z-10 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300"
+      >
+        {collapsed ? <FiChevronLeft size={16} /> : <FiChevronRight size={16} />}
+      </button>
 
-          {selectedItem && (
-            <div className="mt-3 flex items-center gap-2">
-              <span
-                className="
+      {!collapsed && (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <div className="sticky top-0 z-10 bg-[#0F0F0F] pb-4 border-b border-zinc-800">
+              <h2 className="text-lg font-semibold">Properties</h2>
+
+              {selectedItem && (
+                <div className="mt-3 flex items-center gap-2">
+                  <span
+                    className="
                 px-2 py-1
                 rounded-md
                 bg-indigo-500/10
@@ -817,81 +859,68 @@ export default function PropertiesPanel({
                 text-xs
                 uppercase
             "
-              >
-                {selectedItem.type}
-              </span>
+                  >
+                    {selectedItem.type}
+                  </span>
 
-              <span className="text-zinc-500 text-sm">Selected Component</span>
+                  <span className="text-zinc-500 text-sm">Selected Component</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-      <div>{renderFields()}</div>
-      <SectionTitle>Actions</SectionTitle>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
-        <button
-          // onClick={() => {
-          //   setCanvasItems(prev =>
-          //     prev.filter(
-          //       item =>
-          //         item.id !== selectedId
-          //     )
-          //   );
+          </div>
+          <div>{renderFields()}</div>
+          <SectionTitle>Actions</SectionTitle>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
+            <button
+              onClick={() => {
+                setPages((prev) =>
+                  prev.map((page) => {
+                    if (page.id !== activePageId) return page;
+                    const { items } = removeItemById(page.canvasItems, selectedId);
+                    return { ...page, canvasItems: items };
+                  })
+                );
+                setSelectedId(null);
+              }}
+              className="mt-6 bg-red-600 hover:bg-red-500 rounded-lg p-2 flex gap-2 justify-center items-center"
 
-          //   setSelectedId(null);
-          // }}
-          onClick={() => {
-            setPages((prev) =>
-              prev.map((page) =>
-                page.id === activePageId
-                  ? {
-                    ...page,
-                    canvasItems: page.canvasItems.filter(
-                      (item) => item.id !== selectedId,
-                    ),
-                  }
-                  : page,
-              ),
-            );
+            >
+              <span>
+                Delete
+              </span>
+              <MdDeleteForever size={18} />
+            </button>
+            <button
+              onClick={duplicateComponent}
+              className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+            >
+              <span>
+                Duplicate
+              </span>
+              <IoDuplicate size={18} className="text-center" />
+            </button>
+            <button
+              onClick={moveUp}
+              className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+            >
+              <span>
+                Move Up
+              </span>
+              <MdMoveUp size={18} />
+            </button>
+            <button
+              onClick={moveDown}
+              className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+            >
+              <span>
+                Move Down
+              </span>
+              <MdMoveDown size={18} />
+            </button>
+          </div>
+        </>
+      )}
 
-            setSelectedId(null);
-          }}
-          className="mt-6 bg-red-600 hover:bg-red-500 rounded-lg p-2 flex gap-2 justify-center items-center"
-
-        >
-          <span>
-            Delete
-          </span>
-          <MdDeleteForever size={18} />
-        </button>
-        <button
-          onClick={duplicateComponent}
-          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
-        >
-          <span>
-            Duplicate
-          </span>
-          <IoDuplicate size={18} className="text-center" />
-        </button>
-        <button
-          onClick={moveUp}
-          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
-        >
-          <span>
-            Move Up
-          </span>
-          <MdMoveUp size={18} />
-        </button>
-        <button
-          onClick={moveDown}
-          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
-        >
-          <span>
-            Move Down
-          </span>
-          <MdMoveDown size={18} />
-        </button>
-      </div>
     </aside>
   );
 }
