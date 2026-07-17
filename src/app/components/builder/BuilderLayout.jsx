@@ -496,13 +496,13 @@ import BuilderSidebar from "./BuilderSidebar";
 import BuilderCanvas from "./BuilderCanvas";
 import PropertiesPanel from "./PropertiesPanel";
 import PageSidebar from "./PageSidebar";
-import { componentTemplates } from "./componentTemplates";
 import {
     removeItemById,
     insertAtTarget,
     findLocation,
     findItemById,
 } from "../utils/treeUtils";
+import { componentTemplates, createGridCells } from "./componentTemplates";
 
 function collisionDetectionStrategy(args) {
     const pointerCollisions = pointerWithin(args);
@@ -529,10 +529,21 @@ export default function BuilderLayout() {
     const [activeDragData, setActiveDragData] = useState(null);
 
     // Defines which item types are allowed to be dropped into which container types.
+    // const NESTING_RULES = {
+    //     null: ["section"],
+    //     section: [ "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    //     container: [ "section", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    //     gridcell: ["container", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    // };
     const NESTING_RULES = {
-        null: ["section"],
-        section: ["container", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
-        container: ["grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+        null: ["section", "container", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+
+        // Section can hold Container, Grid, and leaf elements — not another Section
+        section: ["grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+
+        // Container can hold Grid and leaf elements — NOT Section, NOT another Container
+        container: ["section", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+
         gridcell: ["container", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
     };
 
@@ -726,12 +737,18 @@ export default function BuilderLayout() {
                         ...(template.children !== undefined ? { children: [] } : {}),
                     };
 
-                    const newItems = insertAtTarget(
-                        items,
-                        targetContainerId,
-                        targetIndex,
-                        newComponent
-                    );
+                    // const newItems = insertAtTarget(
+                    //     items,
+                    //     targetContainerId,
+                    //     targetIndex,
+                    //     newComponent
+                    // );
+                    if (template.type === "grid") {
+                        newComponent.children = createGridCells(template.columns, template.rows || 1);
+                    }
+
+                    const newItems = insertAtTarget(items, targetContainerId, targetIndex, newComponent);
+                    return { ...page, canvasItems: newItems };
                     return { ...page, canvasItems: newItems };
                 }
 

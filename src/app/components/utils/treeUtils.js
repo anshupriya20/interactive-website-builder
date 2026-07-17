@@ -76,3 +76,19 @@ export function updateItemById(items, id, updater) {
     return it;
   });
 }
+
+const resizeHeight = (item, dy) => {
+  setPages((prev) =>
+    prev.map((page) =>
+      page.id !== activePageId
+        ? page
+        : {
+            ...page,
+            canvasItems: updateItemById(page.canvasItems, item.id, (it) => ({
+              ...it,
+              height: Math.max(40, (it.height || 100) + dy),
+            })),
+          }
+    )
+  );
+};

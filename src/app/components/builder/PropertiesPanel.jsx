@@ -47,6 +47,8 @@ const NumberInput = ({ value, onChange, min, max, unit }) => (
   </div>
 );
 
+
+
 const PRESETS = [
   "#ffffff",
   "#a1a1aa",
@@ -169,6 +171,8 @@ function SectionTitle({ children }) {
     </p>
   );
 }
+
+
 
 // ── Main component ───────────────────────────────────────────
 
@@ -834,93 +838,142 @@ export default function PropertiesPanel({
   const moveDown = () => moveWithinParent(1);
 
   return (
-    <aside className={`${collapsed ? "w-14" : "w-80"} shrink-0 transition-all duration-200 border-l border-zinc-800 bg-[#111111] p-4 overflow-y-auto relative`}>
-      <button
-        onClick={() => setCollapsed((v) => !v)}
-        className="absolute top-4 left-3 z-10 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300"
-      >
-        {collapsed ? <FiChevronLeft size={16} /> : <FiChevronRight size={16} />}
-      </button>
+  <aside className={`${collapsed ? "w-16" : "w-80"} shrink-0 transition-all duration-200 border-l border-zinc-800 bg-[#111111] overflow-y-auto relative flex flex-col`}>
+  
+  {/* Collapse Toggle Button */}
+  <button
+    onClick={() => setCollapsed((v) => !v)}
+    className={`absolute top-4 z-20 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-all duration-200 ${
+      collapsed ? "left-1/2 -translate-x-1/2" : "left-3"
+    }`}
+  >
+    {collapsed ? <FiChevronLeft size={16} /> : <FiChevronRight size={16} />}
+  </button>
 
-      {!collapsed && (
-        <>
-          <div className="flex items-center justify-between mb-6">
-            <div className="sticky top-0 z-10 bg-[#0F0F0F] pb-4 border-b border-zinc-800">
-              <h2 className="text-lg font-semibold">Properties</h2>
+  {collapsed ? (
+    /* --- ENHANCED MINI SIDEBAR STATE --- */
+    <div className="flex flex-col items-center pt-16 pb-4 h-full justify-between flex-1 select-none">
+      
+      {/* Top: Active Component Indicator Icon */}
+      <div className="flex flex-col items-center gap-1">
+        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs uppercase" title={`Active: ${selectedItem?.type || 'None'}`}>
+          {selectedItem?.type ? selectedItem.type.substring(0, 2) : "--"}
+        </div>
+      </div>
 
-              {selectedItem && (
-                <div className="mt-3 flex items-center gap-2">
-                  <span
-                    className="
-                px-2 py-1
-                rounded-md
-                bg-indigo-500/10
-                text-indigo-400
-                text-xs
-                uppercase
-            "
-                  >
-                    {selectedItem.type}
-                  </span>
-
-                  <span className="text-zinc-500 text-sm">Selected Component</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div>{renderFields()}</div>
-          <SectionTitle>Actions</SectionTitle>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
-            <button
-              onClick={() => {
-                setPages((prev) =>
-                  prev.map((page) => {
-                    if (page.id !== activePageId) return page;
-                    const { items } = removeItemById(page.canvasItems, selectedId);
-                    return { ...page, canvasItems: items };
-                  })
-                );
-                setSelectedId(null);
-              }}
-              className="mt-6 bg-red-600 hover:bg-red-500 rounded-lg p-2 flex gap-2 justify-center items-center"
-
-            >
-              <span>
-                Delete
-              </span>
-              <MdDeleteForever size={18} />
-            </button>
-            <button
-              onClick={duplicateComponent}
-              className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
-            >
-              <span>
-                Duplicate
-              </span>
-              <IoDuplicate size={18} className="text-center" />
-            </button>
-            <button
-              onClick={moveUp}
-              className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
-            >
-              <span>
-                Move Up
-              </span>
-              <MdMoveUp size={18} />
-            </button>
-            <button
-              onClick={moveDown}
-              className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
-            >
-              <span>
-                Move Down
-              </span>
-              <MdMoveDown size={18} />
-            </button>
-          </div>
-        </>
+      {/* Middle: Rotating Vertical Label */}
+      {selectedItem && (
+        <div className="rotate-180 [writing-mode:vertical-lr] text-zinc-500 text-xs font-medium tracking-wide my-4 opacity-60">
+          Properties Panel
+        </div>
       )}
 
-    </aside>
+      {/* Bottom: Quick Action Icon Strips */}
+      <div className="flex flex-col items-center gap-3 border-t border-zinc-800/60 pt-4 w-full">
+        <button
+          onClick={moveUp}
+          title="Move Up"
+          className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+        >
+          <MdMoveUp size={18} />
+        </button>
+        <button
+          onClick={moveDown}
+          title="Move Down"
+          className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+        >
+          <MdMoveDown size={18} />
+        </button>
+        <button
+          onClick={duplicateComponent}
+          title="Duplicate Component"
+          className="p-2 rounded-lg text-indigo-400 hover:bg-indigo-950/40 hover:text-indigo-300 transition-colors"
+        >
+          <IoDuplicate size={18} />
+        </button>
+        <button
+          onClick={() => {
+            setPages((prev) =>
+              prev.map((page) => {
+                if (page.id !== activePageId) return page;
+                const { items } = removeItemById(page.canvasItems, selectedId);
+                return { ...page, canvasItems: items };
+              })
+            );
+            setSelectedId(null);
+          }}
+          title="Delete Component"
+          className="p-2 rounded-lg text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-colors"
+        >
+          <MdDeleteForever size={18} />
+        </button>
+      </div>
+
+    </div>
+  ) : (
+    /* --- STANDARD EXPANDED STATE --- */
+    <div className="p-4 pt-4 flex-1">
+      <div className="flex items-center justify-between mb-6 pl-8"> 
+        <div className="sticky top-0 z-10 bg-[#0F0F0F] pb-4 border-b border-zinc-800 w-full">
+          <h2 className="text-lg font-semibold">Properties</h2>
+
+          {selectedItem && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs uppercase">
+                {selectedItem.type}
+              </span>
+              <span className="text-zinc-500 text-sm">Selected Component</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>{renderFields()}</div>
+
+      <SectionTitle>Actions</SectionTitle>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button
+          onClick={() => {
+            setPages((prev) =>
+              prev.map((page) => {
+                if (page.id !== activePageId) return page;
+                const { items } = removeItemById(page.canvasItems, selectedId);
+                return { ...page, canvasItems: items };
+              })
+            );
+            setSelectedId(null);
+          }}
+          className="mt-6 bg-red-600 hover:bg-red-500 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Delete</span>
+          <MdDeleteForever size={18} />
+        </button>
+
+        <button
+          onClick={duplicateComponent}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Duplicate</span>
+          <IoDuplicate size={18} className="text-center" />
+        </button>
+        <button
+          onClick={moveUp}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Move Up</span>
+          <MdMoveUp size={18} />
+        </button>
+        <button
+          onClick={moveDown}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Move Down</span>
+          <MdMoveDown size={18} />
+        </button>
+      </div>
+    </div>
+  )}
+</aside>
   );
 }

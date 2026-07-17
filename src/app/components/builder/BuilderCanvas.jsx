@@ -20,6 +20,7 @@ import { ImImage } from "react-icons/im";
 // =============================================COMPONENTS============================
 import CanvasBlock from "./CanvasBlock";
 import SortableItem from "./SortableItem";
+import { updateItemById } from "../utils/treeUtils";
 
 
 function Droppable({ id, data, children, className }) {
@@ -28,19 +29,46 @@ function Droppable({ id, data, children, className }) {
     <div
       ref={setNodeRef}
       // className={`${className || ""} ${isOver ? "ring-2 ring-indigo-500 bg-indigo-500/5" : ""}`}
-      className="min-h-[100px] min-w-0 overflow-hidden rounded-lg bg-zinc-800/50 border border-dashed border-zinc-700 p-2"
+      className="min-h-[100px] min-w-0 overflow-hidden rounded-lg   p-2"
     >
       {children}
     </div>
   );
 }
 
+
+// export default function BuilderCanvas({
+//   canvasItems,
+//   selectedId,
+//   setSelectedId,
+//   previewMode,
+// }) {
+
 export default function BuilderCanvas({
   canvasItems,
   selectedId,
   setSelectedId,
   previewMode,
+  setPages,
+  activePageId,
 }) {
+
+  const resizeHeight = (item, dy) => {
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id !== activePageId
+          ? page
+          : {
+            ...page,
+            canvasItems: updateItemById(page.canvasItems, item.id, (it) => ({
+              ...it,
+              height: Math.max(40, (it.height || 100) + dy),
+            })),
+          }
+      )
+    );
+  };
+
 
   const selectedClass = (id) => {
     if (previewMode) return "";
@@ -62,18 +90,26 @@ export default function BuilderCanvas({
       case "section":
         return (
           <SortableItem key={item.id} id={item.id}>
+
+
             <CanvasBlock
               key={item.id}
               title="Section"
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               {/* <div className="border-2 border-dashed border-indigo-500/30 rounded-xl p-6 mb-4"> */}
               <div
+                // style={{ minHeight: item.height ? `${item.height}px` : undefined }}
+                // className="border-2 border-dashed border-indigo-500/30 rounded-xl p-6 mb-4"
+
                 style={{ minHeight: item.height ? `${item.height}px` : undefined }}
-                className="border-2 border-dashed border-indigo-500/30 rounded-xl p-6 mb-4"
+                className="p-6 mb-4"
               >
+
                 <Droppable
                   id={`dropzone-${item.id}`}
                   data={{ type: "container-dropzone", containerId: item.id }}
@@ -104,6 +140,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               {/* <div className="mb-4 border border-zinc-700 rounded-xl p-6"> */}
               <div
@@ -113,7 +151,7 @@ export default function BuilderCanvas({
                   marginLeft: item.maxWidth ? "auto" : undefined,
                   marginRight: item.maxWidth ? "auto" : undefined,
                 }}
-                className="mb-4 border border-zinc-700 rounded-xl p-6"
+                className="mb-4 p-6"
               >
                 <Droppable
                   id={`dropzone-${item.id}`}
@@ -146,6 +184,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               {/* <div
                 style={{ gridTemplateColumns: `repeat(${item.columns}, 1fr)`, gap: `${item.gap}px` }}
@@ -208,6 +248,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               <HeadingTag
                 style={{
@@ -235,6 +277,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               <p
                 key={item.id}
@@ -297,6 +341,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               <button
                 style={{
@@ -376,6 +422,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               {item.src ? (
                 <img
@@ -426,6 +474,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
 
               <div
@@ -457,6 +507,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
               <div
                 key={item.id}
@@ -488,6 +540,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
 
               <label
@@ -513,6 +567,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
             >
 
               <div
@@ -549,11 +605,11 @@ export default function BuilderCanvas({
   }
 
 
-  console.log(
-    "Canvas Items",
-    canvasItems.length,
-    canvasItems.map(i => i.id)
-  );
+  // console.log(
+  //   "Canvas Items",
+  //   canvasItems.length,
+  //   canvasItems.map(i => i.id)
+  // );
 
 
   return (
@@ -580,7 +636,7 @@ export default function BuilderCanvas({
           <div className="p-8">
             <Droppable id="canvas-root" data={{ type: "canvas-root" }}>
               {canvasItems?.length === 0 ? (
-                <div className="flex items-center justify-center min-h-[80vh] px-6">
+                <div className="flex items-center justify-center min-h-screen px-6">
                   <div className="text-center max-w-lg">
                     <div className="flex justify-center mb-6">
                       <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 shadow-sm">
