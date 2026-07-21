@@ -20,7 +20,7 @@ import { ImImage } from "react-icons/im";
 // =============================================COMPONENTS============================
 import CanvasBlock from "./CanvasBlock";
 import SortableItem from "./SortableItem";
-import { updateItemById } from "../utils/treeUtils";
+import { updateItemById } from "../../utils/treeUtils";
 
 
 function Droppable({ id, data, children, className }) {
@@ -289,7 +289,7 @@ export default function BuilderCanvas({
                     : undefined,
                   color: item.color || undefined,
                 }}
-                className={`mb-4 text-zinc-300 break-all p-2 cursor-pointer rounded-lg transition-all ${sel}`}
+                className={`mb-4 text-zinc-300 break-all p-2 cursor-pointer rounded-lg transition-all `}
               >
                 {item.content}
               </p>
@@ -298,7 +298,7 @@ export default function BuilderCanvas({
         );
 
       case "button": {
-        console.log("BUTTON ITEM:", item);
+        // console.log("BUTTON ITEM:", item);
         const variantClass = {
           primary:
             "bg-indigo-600 hover:bg-indigo-500 text-white",
@@ -341,8 +341,8 @@ export default function BuilderCanvas({
               selected={selectedId === item.id}
               onClick={onClick}
               previewMode={previewMode}
-              height={item.height}
-              onResize={(dy) => resizeHeight(item, dy)}
+            // height={item.height}
+            // onResize={(dy) => resizeHeight(item, dy)}
             >
               <button
                 style={{
@@ -390,7 +390,7 @@ export default function BuilderCanvas({
                       ? `${item.radius}px`
                       : "8px",
                 }}
-                className={`pointer-events-none transition-all font-medium m-5
+                className={`pointer-events-none transition-all font-medium m-5 items-center
 
           ${variantClass[
                   item.variant || "primary"
@@ -438,24 +438,16 @@ export default function BuilderCanvas({
                       : "auto",
                   }}
                   className="
-            rounded-xl
-            object-cover
-            max-w-full
-          "
+                  rounded-xl
+                  object-cover
+                  
+                "
                 />
               ) : (
                 <div
-                  className="
-            flex
-            items-center
-            justify-center
-            h-40
-            rounded-xl
-            bg-zinc-900
-            text-zinc-500
-          "
+                  className="flex gap-2 items-center justify-center rounded-xl bg-zinc-900 text-zinc-500 "
                 >
-                  <ImImage size={32} className="text-blue-500" /> No Image
+                  <ImImage size={32} className="text-blue-500 " /> No Image
                 </div>
               )}
             </CanvasBlock>
@@ -481,15 +473,13 @@ export default function BuilderCanvas({
               <div
                 key={item.id}
                 onClick={onClick}
-                className={`mb-4 p-2 cursor-pointer rounded-lg transition-all ${sel}`}
+                className={`mb-4 p-2 cursor-pointer rounded-lg `}
               >
-                <label className="block text-sm mb-2 text-zinc-400">
-                  {item.label}
-                </label>
+
                 <input
                   readOnly
                   placeholder={item.placeholder}
-                  className="w-full p-3 rounded-lg bg-zinc-900 border border-zinc-800 outline-none pointer-events-none"
+                // className="w-full p-3 rounded-lg bg-zinc-900 border border-zinc-800 outline-none pointer-events-none"
                 />
               </div>
             </CanvasBlock>

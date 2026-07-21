@@ -1,7 +1,7 @@
-import BuilderLayout from "../components/builder/BuilderLayout";
+import BuilderLayout from "../components/builder/layout/BuilderLayout";
 
-export default function BuilderPage(){
+export default function BuilderPage() {
    return (
-    <BuilderLayout/>
+      <BuilderLayout />
    )
 }

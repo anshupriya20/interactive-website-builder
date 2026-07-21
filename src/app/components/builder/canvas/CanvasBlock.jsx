@@ -100,7 +100,7 @@ export default function CanvasBlock({
         }
       `}
     >
-      <div style={{ minHeight: height ? `${height}px` : undefined }}>
+      <div style={{ minHeight: height ? `${height}px` : undefined }}     >
         {children}
       </div>
 

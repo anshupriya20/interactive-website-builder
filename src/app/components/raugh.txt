@@ -1,0 +1,3639 @@
+"use client";
+import React, { useState } from "react";
+
+
+// =====================================ICONS================================================
+import {
+  FiType,
+  FiFileText,
+  FiImage,
+  FiGrid,
+  FiColumns,
+  FiMinus,
+  FiMousePointer,
+  FiEdit,
+  FiCheckSquare,
+  FiCircle,
+  FiLayout,
+  FiBox,
+} from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
+// ===============================COMPONENTS====================================
+import SidebarItem from "./SidebarItem";
+import { componentTemplates, createGridCells } from "./componentTemplates";
+
+
+const sections = {
+  Layout: [
+    "Section",
+    "Container",
+    "Grid",
+    "Columns",
+    "Divider",
+    "Spacer",
+  ],
+
+  Typography: [
+    "Heading",
+    "Text",
+    "RichText",
+    "List",
+    "Quote",
+  ],
+
+  Media: [
+    "Image",
+    "Video",
+    "Gallery",
+    "Carousel",
+  ],
+
+  Actions: [
+    "Button",
+    "IconButton",
+    "CTA",
+  ],
+
+  Forms: [
+    "Input",
+    "Textarea",
+    "Select",
+    "Checkbox",
+    "RadioButton",
+    "Switch",
+    "DatePicker",
+  ],
+
+  Commerce: [
+    "PricingCard",
+    "FeatureCard",
+    "Testimonial",
+    "FAQ",
+  ],
+
+  Advanced: [
+    "Tabs",
+    "Accordion",
+    "Modal",
+    "Timeline",
+  ],
+};
+
+const componentIcons = {
+  Section: FiLayout,
+  Container: FiBox,
+  Grid: FiGrid,
+  Columns: FiColumns,
+  Divider: FiMinus,
+
+  Heading: FiType,
+  Text: FiFileText,
+
+  Image: FiImage,
+
+  Button: FiMousePointer,
+
+  Input: FiEdit,
+  Textarea: FiEdit,
+  Checkbox: FiCheckSquare,
+  RadioButton: FiCircle,
+};
+
+
+
+export default function BuilderSidebar({
+  setPages,
+  activePageId
+}) {
+
+  const [collapsed, setCollapsed] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const addComponent = (componentName) => {
+    const template =
+      componentTemplates[componentName];
+
+    if (!template) {
+      console.warn(
+        `${componentName} template not implemented yet`
+      );
+      return;
+    }
+
+    const component = {
+      id: Date.now().toString(),
+      name: componentName,
+      ...template,
+    };
+
+    if (template.type === "grid") {
+      component.children = createGridCells(template.columns, template.rows || 1);
+    }
+
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? {
+            ...page,
+            canvasItems: [
+              ...page.canvasItems,
+              component,
+            ],
+          }
+          : page
+      )
+    );
+  };
+
+  return (
+    <aside
+      className={`${collapsed ? "w-14" : "w-72"} shrink-0 transition-all duration-200 border-r border-zinc-800 bg-[#111111] overflow-y-auto p-4 relative`}
+    >
+      <button
+        onClick={() => setCollapsed((v) => !v)}
+        className="absolute top-4 right-3 z-10 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300"
+      >
+        {collapsed ? <FiChevronRight size={16} /> : <FiChevronLeft size={16} />}
+      </button>
+
+      {collapsed ? (
+        <div className="flex flex-col items-center gap-3 mt-12">
+          {Object.values(sections).flat().map((name) => {
+            const Icon = componentIcons[name];
+            const implemented = !!componentTemplates[name];
+            return Icon ? (
+              <button
+                key={name}
+                onClick={() => implemented && addComponent(name)}
+                disabled={!implemented}
+                title={name}
+                className={`p-2 rounded-lg ${implemented ? "text-zinc-400 hover:bg-zinc-800 hover:text-white" : "text-zinc-700 cursor-not-allowed"}`}
+              >
+                <Icon size={18} />
+              </button>
+            ) : null;
+          })}
+        </div>
+      ) : (
+        <>
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-zinc-300">
+              Components
+            </h2>
+
+            <p className="text-xs text-zinc-500 mt-1">
+              Drag or click to add elements
+            </p>
+          </div>
+          <div className="relative mb-6">
+            <FiSearch
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"
+            />
+
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="⌘K Search Components"
+              className=" w-full rounded-xl border border-zinc-800 bg-zinc-900 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-zinc-500  outline-none  transition-all  focus:border-indigo-500/50 focus:ring-2  focus:ring-indigo-500/20 "
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className=" absolute right-3 top-1/2  -translate-y-1/2  text-zinc-500  hover:text-white "
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {Object.entries(sections).map(
+            ([group, items]) => (
+              <div
+                key={group}
+                className="mb-8"
+              >
+                <h3
+                  className="
+              text-xs
+              uppercase
+              tracking-widest
+              text-zinc-600
+              mb-3
+              "
+                >
+                  {group}
+                </h3>
+
+                <div className="space-y-2">
+                  {items
+                    .filter((item) =>
+                      item
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
+                    )
+                    .map((item) => {
+                      const implemented =
+                        !!componentTemplates[item];
+
+                      return (
+                        <SidebarItem
+                          key={item}
+                          componentName={item}
+                          implemented={implemented}
+                          icon={componentIcons[item]}
+                          onAdd={addComponent}
+                        />
+                      );
+                    })}
+                </div>
+              </div>
+            )
+          )}
+        </>)}
+    </aside>
+  );
+}
+
+
+
+
+
+
+
+
+
+
+"use client";
+import {
+  DndContext,
+  closestCenter,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { DragOverlay } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
+
+// ============================================ICONS==================================
+import { HiOutlineSparkles } from "react-icons/hi2";
+import { ImImage } from "react-icons/im";
+
+
+// =============================================COMPONENTS============================
+import CanvasBlock from "./CanvasBlock";
+import SortableItem from "./SortableItem";
+import { updateItemById } from "../utils/treeUtils";
+
+
+function Droppable({ id, data, children, className }) {
+  const { setNodeRef, isOver } = useDroppable({ id, data });
+  return (
+    <div
+      ref={setNodeRef}
+      // className={`${className || ""} ${isOver ? "ring-2 ring-indigo-500 bg-indigo-500/5" : ""}`}
+      className="min-h-[100px] min-w-0 overflow-hidden rounded-lg   p-2"
+    >
+      {children}
+    </div>
+  );
+}
+
+
+// export default function BuilderCanvas({
+//   canvasItems,
+//   selectedId,
+//   setSelectedId,
+//   previewMode,
+// }) {
+
+export default function BuilderCanvas({
+  canvasItems,
+  selectedId,
+  setSelectedId,
+  previewMode,
+  setPages,
+  activePageId,
+}) {
+
+  const resizeHeight = (item, dy) => {
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id !== activePageId
+          ? page
+          : {
+            ...page,
+            canvasItems: updateItemById(page.canvasItems, item.id, (it) => ({
+              ...it,
+              height: Math.max(40, (it.height || 100) + dy),
+            })),
+          }
+      )
+    );
+  };
+
+
+  const selectedClass = (id) => {
+    if (previewMode) return "";
+
+    return selectedId === id
+      ? "outline outline-2 outline-indigo-500 outline-offset-2"
+      : "outline outline-1 outline-transparent hover:outline-zinc-600 outline-offset-2";
+  };
+
+  const renderComponent = (item) => {
+    if (!item) return null;
+    const onClick = (e) => {
+      if (previewMode) return;
+      e.stopPropagation();
+      setSelectedId(item.id);
+    };
+    const sel = selectedClass(item.id);
+    switch (item.type) {
+      case "section":
+        return (
+          <SortableItem key={item.id} id={item.id}>
+
+
+            <CanvasBlock
+              key={item.id}
+              title="Section"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              {/* <div className="border-2 border-dashed border-indigo-500/30 rounded-xl p-6 mb-4"> */}
+              <div
+                // style={{ minHeight: item.height ? `${item.height}px` : undefined }}
+                // className="border-2 border-dashed border-indigo-500/30 rounded-xl p-6 mb-4"
+
+                style={{ minHeight: item.height ? `${item.height}px` : undefined }}
+                className="p-6 mb-4"
+              >
+
+                <Droppable
+                  id={`dropzone-${item.id}`}
+                  data={{ type: "container-dropzone", containerId: item.id }}
+                >
+                  {item.children?.length ? (
+                    <SortableContext
+                      items={item.children.map((c) => c.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {item.children.map(renderComponent)}
+                    </SortableContext>
+                  ) : (
+                    <div className="text-zinc-500 text-sm min-h-[60px] flex items-center justify-center">
+                      Drop components here
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            </CanvasBlock>
+          </SortableItem>
+        );
+      case "container":
+        return (
+          <SortableItem key={item.id} id={item.id}>
+            <CanvasBlock
+              key={item.id}
+              title="Container"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              {/* <div className="mb-4 border border-zinc-700 rounded-xl p-6"> */}
+              <div
+                style={{
+                  maxWidth: item.maxWidth ? `${item.maxWidth}px` : undefined,
+                  minHeight: item.height ? `${item.height}px` : undefined,
+                  marginLeft: item.maxWidth ? "auto" : undefined,
+                  marginRight: item.maxWidth ? "auto" : undefined,
+                }}
+                className="mb-4 p-6"
+              >
+                <Droppable
+                  id={`dropzone-${item.id}`}
+                  data={{ type: "container-dropzone", containerId: item.id }}
+                >
+                  {item.children?.length ? (
+                    <SortableContext
+                      items={item.children.map((c) => c.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {item.children.map(renderComponent)}
+                    </SortableContext>
+                  ) : (
+                    <div className="text-zinc-500 text-sm min-h-[60px] flex items-center justify-center">
+                      Drop components here
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      case "grid": {
+        const cells = item.children || [];
+        return (
+          <SortableItem key={item.id} id={item.id}>
+            <CanvasBlock
+              title="Grid"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              {/* <div
+                style={{ gridTemplateColumns: `repeat(${item.columns}, 1fr)`, gap: `${item.gap}px` }}
+                className="grid mb-4"
+              > */}
+              <div
+                style={{
+                  gridTemplateColumns: `repeat(${item.columns}, 1fr)`,
+                  gap: `${item.gap}px`,
+                  minHeight: item.height ? `${item.height}px` : undefined,
+                }}
+                className="grid mb-4"
+              >
+                {cells.map((cell) => (
+                  <Droppable
+                    key={cell.id}
+                    id={`dropzone-${cell.id}`}
+                    data={{ type: "container-dropzone", containerId: cell.id }}
+                    className="min-h-[100px] rounded-lg bg-zinc-800/50 border border-dashed border-zinc-700 p-2"
+                  >
+                    {cell.children?.length ? (
+                      <SortableContext items={cell.children.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                        {cell.children.map(renderComponent)}
+                      </SortableContext>
+                    ) : (
+                      <div className="text-zinc-600 text-xs flex items-center justify-center h-full min-h-[80px]">
+                        Drop here
+                      </div>
+                    )}
+                  </Droppable>
+                ))}
+              </div>
+            </CanvasBlock>
+          </SortableItem>
+        );
+      }
+
+      case "heading": {
+        const HeadingTag = item.level || "h1";
+
+        const fontSizeMap = {
+          h1: 48,
+          h2: 36,
+          h3: 28,
+          h4: 22,
+        };
+
+        const resolvedSize =
+          item.fontSize ??
+          fontSizeMap[HeadingTag] ??
+          48;
+
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Heading"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              <HeadingTag
+                style={{
+                  fontSize: `${resolvedSize}px`,
+                  color: item.color || "#ffffff",
+                  lineHeight: 1.2,
+                }}
+                className="font-bold"
+              >
+                {item.text}
+              </HeadingTag>
+            </CanvasBlock>
+          </SortableItem>
+        );
+      }
+
+      case "text":
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Text"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              <p
+                key={item.id}
+                onClick={onClick}
+                style={{
+                  fontSize: item.fontSize
+                    ? `${item.fontSize}px`
+                    : undefined,
+                  color: item.color || undefined,
+                }}
+                className={`mb-4 text-zinc-300 break-all p-2 cursor-pointer rounded-lg transition-all `}
+              >
+                {item.content}
+              </p>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      case "button": {
+        // console.log("BUTTON ITEM:", item);
+        const variantClass = {
+          primary:
+            "bg-indigo-600 hover:bg-indigo-500 text-white",
+
+          secondary:
+            "bg-zinc-800 hover:bg-zinc-700 text-white",
+
+          outline:
+            "bg-transparent text-white",
+
+          ghost:
+            "bg-transparent text-zinc-300 hover:bg-zinc-800",
+
+          danger:
+            "bg-red-600 hover:bg-red-500 text-white",
+
+          success:
+            "bg-emerald-600 hover:bg-emerald-500 text-white",
+
+          warning:
+            "bg-amber-500 hover:bg-amber-400 text-black",
+
+          link:
+            "bg-transparent text-indigo-400 underline",
+        };
+
+        const sizeClass = {
+          sm: "px-3 py-1 text-sm",
+          md: "px-5 py-2",
+          lg: "px-7 py-3 text-lg",
+        };
+
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Button"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              // height={item.height}
+              // onResize={(dy) => resizeHeight(item, dy)}
+            >
+              <button
+                style={{
+                  fontSize: item.fontSize
+                    ? `${item.fontSize}px`
+                    : undefined,
+
+                  fontWeight:
+                    item.fontWeight || "500",
+
+                  textTransform:
+                    item.textTransform || "none",
+
+                  letterSpacing:
+                    item.letterSpacing
+                      ? `${item.letterSpacing}px`
+                      : undefined,
+
+                  color:
+                    ["outline", "ghost", "link"].includes(
+                      item.variant?.trim()
+                    )
+                      ? item.color
+                      : undefined,
+                  backgroundColor:
+                    item.variant?.trim() === "primary"
+                      ? item.bgColor
+                      : undefined,
+
+                  borderColor:
+                    item.borderColor ||
+                    undefined,
+
+                  borderWidth:
+                    item.borderWidth
+                      ? `${item.borderWidth}px`
+                      : undefined,
+
+                  borderStyle:
+                    item.borderStyle ||
+                    undefined,
+
+                  borderRadius:
+                    item.radius
+                      ? `${item.radius}px`
+                      : "8px",
+                }}
+                className={`pointer-events-none transition-all font-medium m-5 items-center
+
+          ${variantClass[
+                  item.variant || "primary"
+                  ]
+                  }
+
+          ${sizeClass[
+                  item.size || "md"
+                  ]
+                  }
+        `}
+              >
+                {item.label}
+              </button>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      }
+
+      case "image":
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Image"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              {item.src ? (
+                <img
+                  src={item.src}
+                  alt={item.alt}
+                  style={{
+                    width: item.width
+                      ? `${item.width}px`
+                      : "100%",
+                    height: item.height
+                      ? `${item.height}px`
+                      : "auto",
+                  }}
+                        className="
+                  rounded-xl
+                  object-cover
+                  
+                "
+                />
+              ) : (
+                <div
+                  className="flex gap-2 items-center justify-center rounded-xl bg-zinc-900 text-zinc-500 "
+                >
+                  <ImImage size={32} className="text-blue-500 " /> No Image
+                </div>
+              )}
+            </CanvasBlock>
+          </SortableItem>
+
+        );
+
+      case "input":
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Input Field"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+
+              <div
+                key={item.id}
+                onClick={onClick}
+                className={`mb-4 p-2 cursor-pointer rounded-lg `}
+              >
+                
+                <input
+                  readOnly
+                  placeholder={item.placeholder}
+                  // className="w-full p-3 rounded-lg bg-zinc-900 border border-zinc-800 outline-none pointer-events-none"
+                />
+              </div>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      case "textarea":
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="TextArea"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+              <div
+                key={item.id}
+                onClick={onClick}
+                className={`mb-4 p-2 cursor-pointer rounded-lg transition-all ${selectedClass(item.id)}`}
+              >
+                <label className="block text-sm mb-2 text-zinc-400 break-all">
+                  {item.label}
+                </label>
+                <textarea
+                  readOnly
+                  placeholder={item.placeholder}
+                  rows={4}
+                  className="w-full h-auto overflow-y-scroll p-3 rounded-lg bg-zinc-900 border border-zinc-800 outline-none  break-all"
+                />
+              </div>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      case "checkbox":
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Checkbox"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+
+              <label
+                key={item.id}
+                onClick={onClick}
+                className={` flex items-center gap-3 mb-4 p-3 rounded-lg cursor-pointer  ${selectedClass(item.id)} `}
+              >
+                <input type="checkbox" />
+                <span>{item.label}</span>
+              </label>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      case "radiobutton":
+        return (
+          <SortableItem
+            key={item.id}
+            id={item.id}          >
+            <CanvasBlock
+              key={item.id}
+              title="Radio Button"
+              selected={selectedId === item.id}
+              onClick={onClick}
+              previewMode={previewMode}
+              height={item.height}
+              onResize={(dy) => resizeHeight(item, dy)}
+            >
+
+              <div
+                key={item.id}
+                onClick={onClick}
+                className={`  mb-4 p-3  rounded-lg cursor-pointer ${selectedClass(item.id)}  `}
+              >
+                {item.options.map((option, index) => (
+                  <label
+                    key={index}
+                    className="  flex items-center gap-3 mb-2"
+                  >
+                    <input type="radio" name={item.id} />
+
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </CanvasBlock>
+          </SortableItem>
+        );
+
+      default:
+        return (
+          <div
+            key={item.id}
+            className="p-4 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 mb-4"
+          >
+            Unsupported: {item.type}
+          </div>
+        );
+
+    }
+  }
+
+
+  // console.log(
+  //   "Canvas Items",
+  //   canvasItems.length,
+  //   canvasItems.map(i => i.id)
+  // );
+
+
+  return (
+    <main className="flex-1 bg-[#0A0A0A] min-h-0 overflow-auto p-8">
+      <div
+        className={
+          previewMode
+            ? "w-full"
+            : "mx-auto max-w-5xl"
+        }
+      >
+        <div className="min-h-[1200px] rounded-2xl border border-zinc-800 bg-[#111111] shadow-2xl">
+          {/* Browser Bar */}
+          {!previewMode && (
+            <div className="h-12 border-b border-zinc-800 flex items-center px-4 gap-2">
+              <div className="h-3 w-3 rounded-full bg-red-500" />
+              <div className="h-3 w-3 rounded-full bg-yellow-500" />
+              <div className="h-3 w-3 rounded-full bg-green-500" />
+            </div>
+          )}
+
+
+          {/* Canvas Content */}
+          <div className="p-8">
+            <Droppable id="canvas-root" data={{ type: "canvas-root" }}>
+              {canvasItems?.length === 0 ? (
+                <div className="flex items-center justify-center min-h-screen px-6">
+                  <div className="text-center max-w-lg">
+                    <div className="flex justify-center mb-6">
+                      <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 shadow-sm">
+                        <HiOutlineSparkles size={42} className="text-blue-600" />
+                      </div>
+                    </div>
+
+                    <h2 className="text-4xl font-bold text-blue-800 mb-3">
+                      Start Building
+                    </h2>
+
+                    <p className="text-slate-500 text-base leading-relaxed mb-6">
+                      Drag a component from the left panel and drop it here.
+                    </p>
+
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-600 text-sm">
+                      ✨ Drag components into the canvas
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <SortableContext
+                  items={canvasItems.map((item) => item.id.toString())}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {canvasItems.map(renderComponent)}
+                </SortableContext>
+              )}
+            </Droppable>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+
+// // "use client";
+// // import { useState, useEffect } from "react";
+// // import {
+// //     DndContext,
+// //     PointerSensor,
+// //     useSensor,
+// //     useSensors,
+// //     closestCenter,
+// // } from "@dnd-kit/core";
+// // import { arrayMove } from "@dnd-kit/sortable";
+
+// // import BuilderNavbar from "./BuilderNavbar";
+// // import BuilderSidebar from "./BuilderSidebar";
+// // import BuilderCanvas from "./BuilderCanvas";
+// // import PropertiesPanel from "./PropertiesPanel";
+// // import PageSidebar from "./PageSidebar";
+
+// // export default function BuilderLayout() {
+// //     // const [canvasItems, setCanvasItems] = useState([]);
+// //     const [selectedId, setSelectedId] = useState(null);
+// //     const [isLoaded, setIsLoaded] = useState(false);
+// //     const [pages, setPages] = useState([
+// //         {
+// //             id: "home",
+// //             name: "Home",
+// //             canvasItems: [],
+// //         },
+// //     ]);
+
+// //     const [activePageId, setActivePageId] = useState("home");
+// //     const [previewMode, setPreviewMode] = useState(false);
+
+// //     useEffect(() => {
+// //         const saved = localStorage.getItem(
+// //             "craftsite-builder"
+// //         );
+
+// //         if (saved) {
+// //             const data = JSON.parse(saved);
+
+// //             setPages(data.pages || []);
+// //             setActivePageId(
+// //                 data.activePageId || "home"
+// //             );
+// //         }
+
+// //         setIsLoaded(true);
+// //     }, []);
+
+// //     useEffect(() => {
+// //         if (!isLoaded) return;
+
+// //         localStorage.setItem(
+// //             "craftsite-builder",
+// //             JSON.stringify({
+// //                 pages,
+// //                 activePageId,
+// //             })
+// //         );
+// //     }, [pages, activePageId, isLoaded]);
+
+// //     useEffect(() => {
+// //         localStorage.setItem("craftsite-selected", JSON.stringify(selectedId));
+// //     }, [selectedId]);
+
+// //     const sensors = useSensors(
+// //         useSensor(PointerSensor, {
+// //             activationConstraint: { distance: 8 },
+// //         })
+// //     );
+
+// //     const activePage = pages.find((page) => page.id === activePageId);
+
+// //     if (!isLoaded) {
+// //         return (
+// //             <div className="h-screen bg-black flex items-center justify-center text-zinc-500">
+// //                 Loading Builder...
+// //             </div>
+// //         );
+// //     }
+
+// //     // const handleDragEnd = (event) => {
+// //     //     console.log("DRAG END", event);
+// //     //     const { active, over } = event;
+
+// //     //     console.log("ACTIVE:", active?.id);
+// //     //     console.log("OVER:", over?.id);
+
+// //     //     if (!over) {
+// //     //         console.log("NO OVER");
+// //     //         return;
+// //     //     }
+
+// //     //     const currentItems = activePage?.canvasItems || [];
+
+// //     //     const oldIndex = currentItems.findIndex(
+// //     //         (item) => item.id === active.id
+// //     //     );
+
+// //     //     const newIndex = currentItems.findIndex(
+// //     //         (item) => item.id === over.id
+// //     //     );
+
+// //     //     console.log({
+// //     //         oldIndex,
+// //     //         newIndex,
+// //     //     });
+
+// //     //     if (oldIndex === -1) return;
+
+// //     //     if (newIndex === -1) return;
+
+// //     //     if (oldIndex === newIndex) {
+// //     //         console.log("SAME INDEX");
+// //     //         return;
+// //     //     }
+
+// //     //     const reordered = arrayMove(
+// //     //         currentItems,
+// //     //         oldIndex,
+// //     //         newIndex
+// //     //     );
+
+// //     //     console.log("REORDERED", reordered);
+
+// //     //     setPages((prev) =>
+// //     //         prev.map((page) =>
+// //     //             page.id === activePageId
+// //     //                 ? {
+// //     //                     ...page,
+// //     //                     canvasItems: reordered,
+// //     //                 }
+// //     //                 : page
+// //     //         )
+// //     //     );
+// //     // };
+
+// //     const handleDragEnd = (event) => {
+// //         const { active, over } = event;
+// //         if (!over) return;
+
+// //         const isFromSidebar = active.data.current?.source === "sidebar";
+
+// //         if (isFromSidebar) {
+// //             const componentName = active.data.current.component;
+// //             const template = componentTemplates[componentName]; 
+// //             if (!template) return;
+
+// //             const newComponent = { id: Date.now().toString(), name: componentName, ...template };
+
+// //             setPages((prev) =>
+// //                 prev.map((page) => {
+// //                     if (page.id !== activePageId) return page;
+// //                     const items = [...page.canvasItems];
+// //                     const overIndex = items.findIndex((i) => i.id === over.id);
+// //                     const insertAt = overIndex === -1 ? items.length : overIndex;
+// //                     items.splice(insertAt, 0, newComponent);
+// //                     return { ...page, canvasItems: items };
+// //                 })
+// //             );
+// //             return;
+// //         }
+// //         const reordered = arrayMove(
+// //             currentItems,
+// //             oldIndex,
+// //             newIndex
+// //         );
+// //     };
+// //     return (
+// //         <div className="h-screen bg-black text-white flex flex-col">
+// //             <BuilderNavbar
+// //                 pages={pages}
+// //                 setPages={setPages}
+// //                 // setCanvasItems={setCanvasItems}
+// //                 setActivePageId={setActivePageId}
+// //                 setSelectedId={setSelectedId}
+// //                 previewMode={previewMode}
+// //                 setPreviewMode={setPreviewMode}
+// //             />
+
+// //             <div className="flex flex-1 min-h-0 overflow-hidden">
+// //                 {previewMode ? (
+// //                     <BuilderCanvas
+// //                         canvasItems={activePage?.canvasItems || []}
+// //                         selectedId={selectedId}
+// //                         setSelectedId={setSelectedId}
+// //                         activePage={activePage}
+// //                         previewMode={previewMode}
+// //                         setPages={setPages}
+// //                         activePageId={activePageId}
+// //                     />
+// //                 ) : (
+// //                     <>
+// //                         <DndContext
+// //                             sensors={sensors}
+// //                             collisionDetection={closestCenter}
+// //                             onDragEnd={handleDragEnd}
+// //                         >
+// //                             <PageSidebar
+// //                                 pages={pages}
+// //                                 activePageId={activePageId}
+// //                                 setActivePageId={setActivePageId}
+// //                                 setPages={setPages}
+// //                             />
+
+// //                             <BuilderSidebar
+// //                                 pages={pages}
+// //                                 setPages={setPages}
+// //                                 activePageId={activePageId}
+// //                             />
+
+// //                             <BuilderCanvas
+// //                                 canvasItems={activePage?.canvasItems || []}
+// //                                 selectedId={selectedId}
+// //                                 setSelectedId={setSelectedId}
+// //                                 activePage={activePage}
+// //                                 previewMode={previewMode}
+// //                                 setPages={setPages}
+// //                                 activePageId={activePageId}
+// //                             />
+
+// //                             <PropertiesPanel
+// //                                 activePage={activePage}
+// //                                 selectedId={selectedId}
+// //                                 setSelectedId={setSelectedId}
+// //                                 pages={pages}
+// //                                 setPages={setPages}
+// //                                 activePageId={activePageId}
+// //                             // setCanvasItems={setCanvasItems}
+// //                             />
+// //                         </DndContext>
+// //                     </>
+// //                 )}
+// //             </div>
+// //         </div>
+// //     );
+// // }
+
+// "use client";
+// import { useState, useEffect } from "react";
+// import {
+//     DndContext,
+//     PointerSensor,
+//     useSensor,
+//     useSensors,
+//     DragOverlay,
+//     pointerWithin,
+//     rectIntersection,
+// } from "@dnd-kit/core";
+
+// import BuilderNavbar from "./BuilderNavbar";
+// import BuilderSidebar from "./BuilderSidebar";
+// import BuilderCanvas from "./BuilderCanvas";
+// import PropertiesPanel from "./PropertiesPanel";
+// import PageSidebar from "./PageSidebar";
+// import { componentTemplates } from "./componentTemplates";
+// import { removeItemById, insertAtTarget, findLocation, findItemById } from "../utils/treeUtils";
+
+
+
+// const EDGE_THRESHOLD = 24;
+
+// function collisionDetectionStrategy(args) {
+//     const { pointerCoordinates } = args;
+//     let collisions = pointerWithin(args);
+//     if (collisions.length === 0) collisions = rectIntersection(args);
+//     if (collisions.length <= 1) return collisions;
+
+//     const withRects = collisions
+//         .map((c) => ({ ...c, rect: args.droppableRects.get(c.id) }))
+//         .filter((c) => c.rect);
+
+//     withRects.sort((a, b) => a.rect.width * a.rect.height - b.rect.width * b.rect.height);
+
+//     const innermost = withRects[0];
+//     if (pointerCoordinates && innermost) {
+//         const distFromTop = pointerCoordinates.y - innermost.rect.top;
+//         const distFromBottom = innermost.rect.top + innermost.rect.height - pointerCoordinates.y;
+//         const nearEdge = distFromTop < EDGE_THRESHOLD || distFromBottom < EDGE_THRESHOLD;
+
+//         if (nearEdge && withRects.length > 1) {
+//             return [withRects[1], ...withRects.slice(0, 1), ...withRects.slice(2)];
+//         }
+//     }
+
+//     return withRects;
+// }
+
+// export default function BuilderLayout() {
+//     const [selectedId, setSelectedId] = useState(null);
+//     const [isLoaded, setIsLoaded] = useState(false);
+//     const [pages, setPages] = useState([{ id: "home", name: "Home", canvasItems: [] }]);
+//     const [activePageId, setActivePageId] = useState("home");
+//     const [previewMode, setPreviewMode] = useState(false);
+//     const [activeDragData, setActiveDragData] = useState(null);
+
+//     useEffect(() => {
+//         const saved = localStorage.getItem("craftsite-builder");
+//         if (saved) {
+//             const data = JSON.parse(saved);
+//             setPages(data.pages || []);
+//             setActivePageId(data.activePageId || "home");
+//         }
+//         setIsLoaded(true);
+//     }, []);
+
+//     useEffect(() => {
+//         if (!isLoaded) return;
+//         localStorage.setItem("craftsite-builder", JSON.stringify({ pages, activePageId }));
+//     }, [pages, activePageId, isLoaded]);
+
+//     useEffect(() => {
+//         localStorage.setItem("craftsite-selected", JSON.stringify(selectedId));
+//     }, [selectedId]);
+
+
+//     const sensors = useSensors(
+//         useSensor(PointerSensor, {
+//             activationConstraint: { distance: 8 },
+//         })
+//     );
+
+//     const activePage = pages.find((page) => page.id === activePageId);
+
+//     if (!isLoaded) {
+//         return (
+//             <div className="h-screen bg-black flex items-center justify-center text-zinc-500">
+//                 Loading Builder...
+//             </div>
+//         );
+//     }
+
+//     const handleDragStart = (event) => {
+//         setActiveDragData(event.active.data.current);
+//     };
+
+//     const handleDragEnd = (event) => {
+//         const { active, over } = event;
+//         console.log("DRAG END — active:", active.id, active.data.current);
+//         console.log("DRAG END — over:", over?.id, over?.data.current);
+//         setActiveDragData(null);
+//         if (!over) return;
+
+//         const activeData = active.data.current;
+//         const overData = over.data.current;
+//         const isFromSidebar = activeData?.source === "sidebar";
+
+//         setPages((prev) =>
+//             prev.map((page) => {
+//                 if (page.id !== activePageId) return page;
+
+//                 let items = page.canvasItems;
+
+//                 // ---- 1. Figure out WHERE we're dropping: containerId (null = root) + index ----
+//                 let targetContainerId = null;
+//                 let targetIndex = items.length;
+
+//                 if (overData?.type === "container-dropzone") {
+//                     // Dropped directly into a Section/Container's empty area
+//                     targetContainerId = overData.containerId;
+//                     const containerItem = findItemById(items, targetContainerId);
+//                     targetIndex = containerItem?.children?.length || 0;
+//                 } else if (overData?.type === "canvas-root") {
+//                     // Dropped on empty canvas / below everything
+//                     targetContainerId = null;
+//                     targetIndex = items.length;
+//                 } else {
+//                     // Dropped on/near an existing item — insert as its sibling, at its position
+//                     const loc = findLocation(items, over.id);
+//                     if (!loc) return page;
+//                     targetContainerId = loc.parentId;
+//                     targetIndex = loc.index;
+//                 }
+
+//                 // ---- 2a. Sidebar -> Canvas: create a brand new component ----
+//                 if (isFromSidebar) {
+//                     const componentName = activeData.component;
+//                     const template = componentTemplates[componentName];
+//                     if (!template) return page;
+
+//                     const newComponent = {
+//                         id: Date.now().toString(),
+//                         name: componentName,
+//                         ...template,
+//                         ...(template.children !== undefined ? { children: [] } : {}),
+//                     };
+
+//                     const newItems = insertAtTarget(items, targetContainerId, targetIndex, newComponent);
+//                     return { ...page, canvasItems: newItems };
+//                 }
+
+//                 // ---- 2b. Canvas -> Canvas: moving/reordering an existing item ----
+//                 if (active.id === over.id) return page;
+
+//                 const { items: itemsAfterRemoval, removed } = removeItemById(items, active.id);
+//                 if (!removed) return page;
+
+//                 // Guard: don't let a container be dropped inside its own descendant
+//                 if (removed.children?.length) {
+//                     const draggedIntoOwnChild = findItemById(removed.children ? [removed] : [], targetContainerId);
+//                     if (draggedIntoOwnChild) return page;
+//                 }
+
+//                 const finalItems = insertAtTarget(itemsAfterRemoval, targetContainerId, targetIndex, removed);
+//                 return { ...page, canvasItems: finalItems };
+//             })
+//         );
+//     };
+
+//     return (
+//         <div className="h-screen bg-black text-white flex flex-col">
+//             <BuilderNavbar
+//                 pages={pages}
+//                 setPages={setPages}
+//                 setActivePageId={setActivePageId}
+//                 setSelectedId={setSelectedId}
+//                 previewMode={previewMode}
+//                 setPreviewMode={setPreviewMode}
+//             />
+
+//             <div className="flex flex-1 min-h-0 overflow-hidden">
+//                 {previewMode ? (
+//                     <BuilderCanvas
+//                         canvasItems={activePage?.canvasItems || []}
+//                         selectedId={selectedId}
+//                         setSelectedId={setSelectedId}
+//                         activePage={activePage}
+//                         previewMode={previewMode}
+//                         setPages={setPages}
+//                         activePageId={activePageId}
+//                     />
+//                 ) : (
+//                     <DndContext
+//                         sensors={sensors}
+//                         collisionDetection={collisionDetectionStrategy}
+//                         onDragStart={handleDragStart}
+//                         onDragEnd={handleDragEnd}
+//                     >
+//                         <PageSidebar
+//                             pages={pages}
+//                             activePageId={activePageId}
+//                             setActivePageId={setActivePageId}
+//                             setPages={setPages}
+//                         />
+
+//                         <BuilderSidebar pages={pages} setPages={setPages} activePageId={activePageId} />
+
+//                         <BuilderCanvas
+//                             canvasItems={activePage?.canvasItems || []}
+//                             selectedId={selectedId}
+//                             setSelectedId={setSelectedId}
+//                             activePage={activePage}
+//                             previewMode={previewMode}
+//                             setPages={setPages}
+//                             activePageId={activePageId}
+//                         />
+
+//                         <PropertiesPanel
+//                             activePage={activePage}
+//                             selectedId={selectedId}
+//                             setSelectedId={setSelectedId}
+//                             pages={pages}
+//                             setPages={setPages}
+//                             activePageId={activePageId}
+//                         />
+
+//                         {/* Visual feedback while dragging */}
+//                         <DragOverlay>
+//                             {activeDragData?.source === "sidebar" && (
+//                                 <div className="px-4 py-3 rounded-xl border border-indigo-500 bg-zinc-900 text-sm text-indigo-300 shadow-xl">
+//                                     {activeDragData.component}
+//                                 </div>
+//                             )}
+//                         </DragOverlay>
+//                     </DndContext>
+//                 )}
+//             </div>
+//         </div>
+//     );
+// }
+
+"use client";
+import { useState, useEffect } from "react";
+import {
+    DndContext,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+    pointerWithin,
+    rectIntersection,
+} from "@dnd-kit/core";
+
+import BuilderNavbar from "./BuilderNavbar";
+import BuilderSidebar from "./BuilderSidebar";
+import BuilderCanvas from "./BuilderCanvas";
+import PropertiesPanel from "./PropertiesPanel";
+import PageSidebar from "./PageSidebar";
+import {
+    removeItemById,
+    insertAtTarget,
+    findLocation,
+    findItemById,
+} from "../utils/treeUtils";
+import { componentTemplates, createGridCells } from "./componentTemplates";
+
+function collisionDetectionStrategy(args) {
+    const pointerCollisions = pointerWithin(args);
+    const collisions = pointerCollisions.length > 0 ? pointerCollisions : rectIntersection(args);
+
+    if (collisions.length <= 1) return collisions;
+
+    return [...collisions].sort((a, b) => {
+        const rectA = args.droppableRects.get(a.id);
+        const rectB = args.droppableRects.get(b.id);
+        if (!rectA || !rectB) return 0;
+        return rectA.width * rectA.height - rectB.width * rectB.height;
+    });
+}
+
+export default function BuilderLayout() {
+    const [selectedId, setSelectedId] = useState(null);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [pages, setPages] = useState([
+        { id: "home", name: "Home", canvasItems: [] },
+    ]);
+    const [activePageId, setActivePageId] = useState("home");
+    const [previewMode, setPreviewMode] = useState(false);
+    const [activeDragData, setActiveDragData] = useState(null);
+
+    // Defines which item types are allowed to be dropped into which container types.
+    // const NESTING_RULES = {
+    //     null: ["section"],
+    //     section: [ "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    //     container: [ "section", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    //     gridcell: ["container", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    // };
+    const NESTING_RULES = {
+        null: ["section", "container", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+
+        // Section can hold Container, Grid, and leaf elements — not another Section
+        section: ["grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+
+        // Container can hold Grid and leaf elements — NOT Section, NOT another Container
+        container: ["section", "grid", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+
+        gridcell: ["container", "heading", "text", "button", "image", "input", "textarea", "checkbox", "radiobutton"],
+    };
+
+    function isDropAllowed(childType, targetContainerId, items) {
+        if (targetContainerId === null) {
+            return NESTING_RULES[null].includes(childType);
+        }
+        const targetItem = findItemById(items, targetContainerId);
+        if (!targetItem) return false;
+        const allowed = NESTING_RULES[targetItem.type];
+        return allowed ? allowed.includes(childType) : false;
+    }
+
+    useEffect(() => {
+        const saved = localStorage.getItem("craftsite-builder");
+        if (saved) {
+            const data = JSON.parse(saved);
+            setPages(data.pages || []);
+            setActivePageId(data.activePageId || "home");
+        }
+        setIsLoaded(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isLoaded) return;
+        localStorage.setItem(
+            "craftsite-builder",
+            JSON.stringify({ pages, activePageId })
+        );
+    }, [pages, activePageId, isLoaded]);
+
+    useEffect(() => {
+        localStorage.setItem("craftsite-selected", JSON.stringify(selectedId));
+    }, [selectedId]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: { distance: 8 },
+        })
+    );
+
+    const activePage = pages.find((page) => page.id === activePageId);
+
+    if (!isLoaded) {
+        return (
+            <div className="h-screen bg-black flex items-center justify-center text-zinc-500">
+                Loading Builder...
+            </div>
+        );
+    }
+
+    const handleDragStart = (event) => {
+        setActiveDragData(event.active.data.current);
+    };
+
+    // const handleDragEnd = (event) => {
+    //     const { active, over } = event;
+    //     setActiveDragData(null);
+    //     if (!over) return;
+
+    //     const activeData = active.data.current;
+    //     const overData = over.data.current;
+    //     const isFromSidebar = activeData?.source === "sidebar";
+
+    //     setPages((prev) =>
+    //         prev.map((page) => {
+    //             if (page.id !== activePageId) return page;
+
+    //             const items = page.canvasItems;
+
+    //             // ---- 1. Figure out WHERE we're dropping: containerId (null = root) + index ----
+    //             let targetContainerId = null;
+    //             let targetIndex = items.length;
+
+    //             if (overData?.type === "container-dropzone") {
+    //                 // Dropped directly into a Section/Container/Grid-cell's content area
+    //                 targetContainerId = overData.containerId;
+    //                 const containerItem = findItemById(items, targetContainerId);
+    //                 targetIndex = containerItem?.children?.length || 0;
+    //             } else if (overData?.type === "canvas-root") {
+    //                 // Dropped on empty canvas / below everything at top level
+    //                 targetContainerId = null;
+    //                 targetIndex = items.length;
+    //             } else {
+    //                 // Dropped on/near an existing item — insert as its sibling, at its position
+    //                 const loc = findLocation(items, over.id);
+    //                 if (!loc) return page;
+    //                 targetContainerId = loc.parentId;
+    //                 targetIndex = loc.index;
+    //             }
+
+    //             // ---- 2a. Sidebar -> Canvas: create a brand new component ----
+    //             if (isFromSidebar) {
+    //                 const componentName = activeData.component;
+    //                 const template = componentTemplates[componentName];
+    //                 if (!template) return page;
+
+    //                 const newComponent = {
+    //                     id: Date.now().toString(),
+    //                     name: componentName,
+    //                     ...template,
+    //                     ...(template.children !== undefined ? { children: [] } : {}),
+    //                 };
+
+    //                 const newItems = insertAtTarget(
+    //                     items,
+    //                     targetContainerId,
+    //                     targetIndex,
+    //                     newComponent
+    //                 );
+    //                 return { ...page, canvasItems: newItems };
+    //             }
+
+    //             // ---- 2b. Canvas -> Canvas: moving/reordering an existing item ----
+    //             if (active.id === over.id) return page;
+
+    //             const { items: itemsAfterRemoval, removed } = removeItemById(
+    //                 items,
+    //                 active.id
+    //             );
+    //             if (!removed) return page;
+
+    //             // Guard: don't let a container be dropped inside its own descendant
+    //             if (removed.children?.length) {
+    //                 const draggedIntoOwnChild = findItemById(
+    //                     [removed],
+    //                     targetContainerId
+    //                 );
+    //                 if (draggedIntoOwnChild) return page;
+    //             }
+
+    //             const finalItems = insertAtTarget(
+    //                 itemsAfterRemoval,
+    //                 targetContainerId,
+    //                 targetIndex,
+    //                 removed
+    //             );
+    //             return { ...page, canvasItems: finalItems };
+    //         })
+    //     );
+    // };
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        setActiveDragData(null);
+        if (!over) return;
+
+        const activeData = active.data.current;
+        const overData = over.data.current;
+        const isFromSidebar = activeData?.source === "sidebar";
+
+        setPages((prev) =>
+            prev.map((page) => {
+                if (page.id !== activePageId) return page;
+
+                const items = page.canvasItems;
+
+                // ---- 1. Figure out WHERE we're dropping: containerId (null = root) + index ----
+                let targetContainerId = null;
+                let targetIndex = items.length;
+
+                if (overData?.type === "container-dropzone") {
+                    // Dropped directly into a Section/Container/Grid-cell's content area
+                    targetContainerId = overData.containerId;
+                    const containerItem = findItemById(items, targetContainerId);
+                    targetIndex = containerItem?.children?.length || 0;
+                } else if (overData?.type === "canvas-root") {
+                    // Dropped on empty canvas / below everything at top level
+                    targetContainerId = null;
+                    targetIndex = items.length;
+                } else {
+                    // Dropped on/near an existing item — insert as its sibling, at its position
+                    const loc = findLocation(items, over.id);
+                    if (!loc) return page;
+                    targetContainerId = loc.parentId;
+                    targetIndex = loc.index;
+                }
+
+                // ---- 2a. Sidebar -> Canvas: create a brand new component ----
+                if (isFromSidebar) {
+                    const componentName = activeData.component;
+                    const template = componentTemplates[componentName];
+                    if (!template) return page;
+
+                    if (!isDropAllowed(template.type, targetContainerId, items)) return page; // NEW
+
+                    const newComponent = {
+                        id: Date.now().toString(),
+                        name: componentName,
+                        ...template,
+                        ...(template.children !== undefined ? { children: [] } : {}),
+                    };
+
+                    // const newItems = insertAtTarget(
+                    //     items,
+                    //     targetContainerId,
+                    //     targetIndex,
+                    //     newComponent
+                    // );
+                    if (template.type === "grid") {
+                        newComponent.children = createGridCells(template.columns, template.rows || 1);
+                    }
+
+                    const newItems = insertAtTarget(items, targetContainerId, targetIndex, newComponent);
+                    return { ...page, canvasItems: newItems };
+                    return { ...page, canvasItems: newItems };
+                }
+
+                // ---- 2b. Canvas -> Canvas: moving/reordering an existing item ----
+                if (active.id === over.id) return page;
+
+                const { items: itemsAfterRemoval, removed } = removeItemById(
+                    items,
+                    active.id
+                );
+                if (!removed) return page;
+
+                if (!isDropAllowed(removed.type, targetContainerId, itemsAfterRemoval)) return page; // NEW
+
+                // Guard: don't let a container be dropped inside its own descendant
+                if (removed.children?.length) {
+                    const draggedIntoOwnChild = findItemById(
+                        [removed],
+                        targetContainerId
+                    );
+                    if (draggedIntoOwnChild) return page;
+                }
+
+                const finalItems = insertAtTarget(
+                    itemsAfterRemoval,
+                    targetContainerId,
+                    targetIndex,
+                    removed
+                );
+                return { ...page, canvasItems: finalItems };
+            })
+        );
+    };
+
+    return (
+        <div className="h-screen bg-black text-white flex flex-col">
+            <BuilderNavbar
+                pages={pages}
+                setPages={setPages}
+                setActivePageId={setActivePageId}
+                setSelectedId={setSelectedId}
+                previewMode={previewMode}
+                setPreviewMode={setPreviewMode}
+            />
+
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+                {previewMode ? (
+                    <BuilderCanvas
+                        canvasItems={activePage?.canvasItems || []}
+                        selectedId={selectedId}
+                        setSelectedId={setSelectedId}
+                        activePage={activePage}
+                        previewMode={previewMode}
+                        setPages={setPages}
+                        activePageId={activePageId}
+                    />
+                ) : (
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={collisionDetectionStrategy}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <PageSidebar
+                            pages={pages}
+                            activePageId={activePageId}
+                            setActivePageId={setActivePageId}
+                            setPages={setPages}
+                        />
+
+                        <BuilderSidebar
+                            pages={pages}
+                            setPages={setPages}
+                            activePageId={activePageId}
+                        />
+
+                        <BuilderCanvas
+                            canvasItems={activePage?.canvasItems || []}
+                            selectedId={selectedId}
+                            setSelectedId={setSelectedId}
+                            activePage={activePage}
+                            previewMode={previewMode}
+                            setPages={setPages}
+                            activePageId={activePageId}
+                        />
+
+                        <PropertiesPanel
+                            activePage={activePage}
+                            selectedId={selectedId}
+                            setSelectedId={setSelectedId}
+                            pages={pages}
+                            setPages={setPages}
+                            activePageId={activePageId}
+                        />
+
+                        {/* Visual feedback while dragging */}
+                        <DragOverlay>
+                            {activeDragData?.source === "sidebar" && (
+                                <div className="px-4 py-3 rounded-xl border border-indigo-500 bg-zinc-900 text-sm text-indigo-300 shadow-xl">
+                                    {activeDragData.component}
+                                </div>
+                            )}
+                        </DragOverlay>
+                    </DndContext>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
+"use client";
+import { useState, useRef } from "react";
+import toast from "react-hot-toast";
+
+import { FiUpload } from "react-icons/fi";
+import { FaFileAlt } from "react-icons/fa";
+
+
+export default function BuilderNavbar({
+  setActivePageId,
+  pages,
+  setPages,
+  setSelectedId,
+  previewMode,
+  setPreviewMode,
+}) {
+  const handleClearProject = () => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium">Clear the entire project?</p>
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="
+            px-3 py-1 rounded-md
+            bg-zinc-700 hover:bg-zinc-600
+            text-white text-sm
+          "
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={() => {
+              localStorage.removeItem("craftsite-builder");
+
+              setPages([
+                {
+                  id: "home",
+                  name: "Home",
+                  canvasItems: [],
+                },
+              ]);
+
+              setActivePageId("home");
+              setSelectedId(null);
+
+              toast.dismiss(t.id);
+
+              toast.success("Project cleared successfully");
+            }}
+            className="
+            px-3 py-1 rounded-md
+            bg-red-600 hover:bg-red-500
+            text-white text-sm
+          "
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    ));
+  };
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const exportProject = () => {
+    const projectData = {
+      projectName: "Untitled Project",
+
+      version: "v3.0",
+
+      exportedAt: new Date().toISOString(),
+
+      pages,
+    };
+
+    const jsonString = JSON.stringify(projectData, null, 2);
+
+    const blob = new Blob([jsonString], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+
+    const date = new Date().toISOString().split("T")[0];
+
+    link.download = `craftsite-${date}.json`;
+
+    link.click();
+    toast.success("Project exported successfully");
+
+    URL.revokeObjectURL(url);
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.name.endsWith(".json")) {
+      toast.error(
+        "Please select a JSON file"
+      );
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+  const importProject = () => {
+    if (!selectedFile) {
+      toast.error(
+        "Select a file first"
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(
+          e.target.result
+        );
+
+        // setPages(data.pages);
+        const importedPages = (data.pages || []).map(page => ({
+
+          id: page.id || crypto.randomUUID(),
+
+          name: page.name || "Untitled",
+
+          canvasItems: Array.isArray(page.canvasItems)
+            ? page.canvasItems
+            : []
+
+        }));
+
+        setPages(importedPages);
+
+        // setActivePageId(
+        //   data.pages?.[0]?.id ||
+        //   "home"
+        // );
+
+        setActivePageId(
+          importedPages.length
+            ? importedPages[0].id
+            : "home"
+        )
+
+        toast.success(
+          "Project imported successfully"
+        );
+
+        setSelectedFile(null);
+      } catch {
+        toast.error(
+          "Invalid JSON file"
+        );
+      }
+    };
+
+    reader.readAsText(selectedFile);
+  };
+
+  return (
+
+    <header className="h-16 border-b border-zinc-800 bg-[#111111] px-6 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <h1 className="font-bold text-xl">
+          Craft<span className="text-indigo-400">Site</span>
+        </h1>
+
+        <span className="text-zinc-600">/</span>
+
+        <span className="text-zinc-400 text-sm">Untitled Project</span>
+      </div>
+
+      <div className="flex items-center gap-3">
+
+        {/* Import Section */}
+        <div className="flex items-center gap-2">
+          <label
+            className="
+        flex items-center gap-2
+        h-10
+        px-3
+
+        min-w-[220px]
+        max-w-[280px]
+
+        rounded-lg
+        border border-zinc-800
+        bg-zinc-900
+
+        hover:border-indigo-500/40
+        transition-all
+        cursor-pointer
+      "
+          >
+            <FaFileAlt
+              size={14}
+              className="text-blue-400 shrink-0"
+            />
+
+            <span
+              className="
+          text-sm
+          text-zinc-400
+          truncate
+        "
+            >
+              {selectedFile
+                ? selectedFile.name
+                : "Select JSON file"}
+            </span>
+
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            onClick={importProject}
+            disabled={!selectedFile}
+            className={`
+        h-10
+        px-4
+
+        rounded-lg
+        flex items-center gap-2
+
+        transition-all
+
+        ${selectedFile
+                ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }
+      `}
+          >
+            <FiUpload size={14} />
+            Import
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="h-6 w-px bg-zinc-800" />
+
+        {/* Project Actions */}
+        <div className="flex items-center gap-2">
+
+          <button
+            onClick={exportProject}
+            className="
+        h-10
+        px-4
+
+        rounded-lg
+
+        bg-zinc-900
+        border border-zinc-800
+
+        hover:border-indigo-500/40
+        hover:bg-zinc-800
+
+        transition-all
+      "
+          >
+            Export
+          </button>
+
+          <button
+            onClick={() =>
+              setPreviewMode(!previewMode)
+            }
+            className="
+        h-10
+        px-4
+
+        rounded-lg
+
+        bg-zinc-900
+        border border-zinc-800
+
+        hover:border-indigo-500/40
+        hover:bg-zinc-800
+
+        transition-all
+      "
+          >
+            {previewMode
+              ? "Exit Preview"
+              : "Preview"}
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="h-6 w-px bg-zinc-800" />
+
+        {/* Publish & Clear */}
+        <div className="flex items-center gap-2">
+
+          <button
+            className="
+        h-10
+        px-4
+
+        rounded-lg
+
+        bg-indigo-600
+        hover:bg-indigo-500
+
+        transition-all
+      "
+          >
+            Publish
+          </button>
+
+          <button
+            onClick={handleClearProject}
+            className="
+        h-10
+        px-4
+
+        rounded-lg
+
+        bg-red-600
+        hover:bg-red-500
+
+        transition-all
+      "
+          >
+            Clear
+          </button>
+
+        </div>
+
+      </div>
+    </header>
+  );
+}
+
+
+// <header className="h-16 border-b border-zinc-800 bg-[#111111] px-6 flex items-center justify-between">
+//   <div className="flex items-center gap-3">
+//     <h1 className="font-bold text-xl">
+//       Craft<span className="text-indigo-400">Site</span>
+//     </h1>
+
+//     <span className="text-zinc-600">/</span>
+
+//     <span className="text-zinc-400 text-sm">Untitled Project</span>
+//   </div>
+
+//   <div className="flex gap-3">
+
+//     <label
+//       className=" flex items-center gap-3 w-72 px-4 py-3  rounded-xl  border border-zinc-800 bg-zinc-900 hover:border-indigo-500/40 cursor-pointer transition-all "
+//     >
+//       <span className="text-lg">
+//         <FaFileAlt className="text-blue-400" />
+//       </span>
+
+//       <span
+//         className=" text-sm text-zinc-300 truncate "
+//       >
+//         {selectedFile
+//           ? selectedFile.name
+//           : "Select project JSON..."}
+//       </span>
+
+//       <input
+//         type="file"
+//         accept=".json"
+//         onChange={handleFileSelect}
+//         className="hidden"
+//       />
+//     </label>
+//     <button
+//       onClick={importProject}
+//       disabled={!selectedFile}
+//       className={` mt-3 px-4 py-2 rounded-lg font-mediumtransition
+//        ${selectedFile
+//           ? "bg-indigo-600 hover:bg-indigo-500"
+//           : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+//         }
+//    `}
+//     >
+//       <FiUpload className="inline-block mr-2" />
+//       Import Project
+//     </button>
+
+
+//     <button
+//       onClick={exportProject}
+//       className="px-4 py-2 rounded-lg  bg-indigo-600  hover:bg-indigo-500"
+//     >
+//       Export
+//     </button>
+//     <button
+//       className="px-4 py-2 rounded-lg border border-zinc-800 hover:border-zinc-600"
+//       onClick={() => setPreviewMode(!previewMode)}
+//     >
+//       {previewMode ? "Exit Preview" : "Preview"}
+//     </button>
+
+//     <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500">
+//       Publish
+//     </button>
+//     <button
+//       onClick={handleClearProject}
+//       className=" p-2 border border-red-500 text-white font-medium rounded-lg bg-red-500 hover:bg-red-600 transition"
+//     >
+//       Clear
+//     </button>
+//   </div>
+// </header>
+
+// export default function CanvasBlock({
+//   title,
+//   selected,
+//   children,
+//   onClick,
+//   previewMode,
+
+// }) {
+//   if (previewMode) {
+//     return children;
+//   }
+//   return (
+//     <div
+//       onClick={onClick}
+//       className={`
+//         mb-5
+//         overflow-hidden
+//         rounded-2xl
+//         transition-all
+
+//         ${selected
+//           ? "border border-indigo-500 shadow-lg shadow-indigo-500/10"
+//           : "border border-zinc-800"
+//         }
+//       `}
+//     >
+//       <div
+//         className="
+//           px-4
+//           py-2
+//           border-b
+//           border-zinc-800
+//           bg-zinc-900/50
+//         "
+//       >
+//         <span
+//           className="
+//             text-[10px]
+//             uppercase
+//             tracking-[0.2em]
+//             text-zinc-500
+//           "
+//         >
+//           {title}
+//         </span>
+//       </div>
+
+//       <div className="p-4 ">
+//         {children}
+//       </div>
+//     </div>
+//   );
+// }
+
+"use client";
+import { useRef } from "react";
+
+export default function CanvasBlock({
+  selected,
+  children,
+  onClick,
+  previewMode,
+  height,
+  onResize,      
+  onResizeEnd,   
+}) {
+  if (previewMode) {
+    return children;
+  }
+
+  const startYRef = useRef(null);
+
+  const handleResizeStart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    startYRef.current = e.clientY;
+
+    const handleMove = (moveEvent) => {
+      const dy = moveEvent.clientY - startYRef.current;
+      startYRef.current = moveEvent.clientY;
+      onResize?.(dy);
+    };
+    const handleUp = () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      onResizeEnd?.();
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+  };
+
+  return (
+    <div
+      onClick={onClick}
+      className={`
+        relative mb-5 rounded-xl transition-all
+        ${selected
+          ? "outline outline-2 outline-indigo-500 outline-offset-2"
+          : "outline outline-1 outline-transparent outline-zinc-700 outline-offset-2"
+        }
+      `}
+    >
+      <div style={{ minHeight: height ? `${height}px` : undefined }}     >
+        {children}
+      </div>
+
+      {selected && onResize && (
+        <div
+          onPointerDown={handleResizeStart}
+          className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-indigo-500 rounded-sm cursor-ns-resize z-20 hover:scale-125 transition-transform"
+        />
+      )}
+    </div>
+  );
+}
+
+
+export const componentTemplates = {
+  Section: { type: "section", children: [] },
+  Container: { type: "container", maxWidth: "1200px", children: [] },
+   Grid: { type: "grid", columns: 2, rows: 1, gap: 20 },
+  Heading: { type: "heading", text: "New Heading", level: "h1", fontSize: 48 },
+  Text: { type: "text", content: "Lorem ipsum dolor sit amet." },
+  Image: { type: "image", src: "", alt: "Image" },
+  Button: { type: "button", label: "Click Me", variant: "primary" },
+  Input: { type: "input", label: "Input Label", placeholder: "Enter text" },
+  Textarea: { type: "textarea", label: "Message", placeholder: "Type here..." },
+  Checkbox: { type: "checkbox", label: "Accept Terms" },
+  RadioButton: { type: "radiobutton", options: ["Option 1", "Option 2"] },
+};
+
+export const CONTAINER_TYPES = ["section", "container", "grid",];
+
+export function createGridCells(columns, rows) {
+  const count = Math.max(1, columns) * Math.max(1, rows);
+  return Array.from({ length: count }, (_, i) => ({
+    id: `${Date.now()}-cell-${i}-${Math.random().toString(36).slice(2, 6)}`,
+    type: "gridcell",
+    children: [],
+  }));
+}
+export function generateId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+"use client";
+
+export default function PageSidebar({
+    pages,
+    activePageId,
+    setActivePageId,
+    setPages,
+}) {
+
+    const addPage = () => {
+        const pageId = Date.now().toString();
+
+        setPages((prev) => [
+            ...prev,
+            {
+                id: pageId,
+                name: `Page ${prev.length}`,
+                canvasItems: [],
+            },
+        ]);
+    };
+    console.log(activePageId);
+    return (
+        <aside className="w-60 border-r border-zinc-800 bg-[#0D0D0D] p-4">
+            <h2 className="text-sm font-semibold text-zinc-400 mb-6">Pages</h2>
+
+            <div className="space-y-2">
+                {pages.map((page) => (
+                    <button
+                        key={page.id}
+                        onClick={() => setActivePageId(page.id)}
+                        className={` w-full text-left px-4 py-3 rounded-xl transition-all
+            ${activePageId === page.id
+                                ? "bg-indigo-600 text-white"
+                                : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800"
+                            }
+          `}
+                    >
+                        {page.name}
+                    </button>
+                ))}
+            </div>
+            <div className="mt-6">
+                <button
+                    onClick={addPage}
+                    className="w-full rounded-xl bg-indigo-600 py-3 font-medium hover:bg-indigo-500 transition-all"
+                >
+                    + Add Page
+                </button>
+            </div>
+        </aside>
+    );
+}
+
+
+"use client";
+import { useState, useEffect, useRef } from "react";
+
+//========================================ICONS===============================================
+import { IoDuplicate } from "react-icons/io5";
+import { MdDeleteForever } from "react-icons/md";
+import { MdMoveDown } from "react-icons/md";
+import { MdMoveUp } from "react-icons/md";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
+// ========================================COMPONENTS==========================================
+import { updateItemById, findItemById, findLocation, removeItemById, insertAtTarget } from "../utils/treeUtils";
+import { createGridCells } from "./componentTemplates";
+
+
+// ── Sub-components defined OUTSIDE to prevent remount on render ──
+
+const Field = ({ label, children }) => (
+  <div className="mb-4">
+    <label className="block text-xs text-zinc-500 uppercase tracking-widest mb-1.5">
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
+const TextInput = ({ value, onChange, placeholder }) => (
+  <input
+    value={value || ""}
+    onChange={(e) => onChange(e.target.value)}
+    placeholder={placeholder}
+    className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors"
+  />
+);
+
+const NumberInput = ({ value, onChange, min, max, unit }) => (
+  <div className="flex items-center gap-2">
+    <input
+      type="number"
+      value={value ?? ""}
+      onChange={(e) => onChange(Number(e.target.value))}
+      min={min}
+      max={max}
+      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors"
+    />
+    {unit && <span className="text-xs text-zinc-500 shrink-0">{unit}</span>}
+  </div>
+);
+
+
+
+const PRESETS = [
+  "#ffffff",
+  "#a1a1aa",
+  "#6366f1",
+  "#8b5cf6",
+  "#ec4899",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#ef4444",
+  "#0a0a0a",
+];
+
+const isValidHex = (h) => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(h);
+
+
+const ColorInput = ({ value, onChange }) => {
+  const [hex, setHex] = useState(value || "#ffffff");
+  const swatchRef = useRef(null);
+
+  // When selected item changes, sync local hex from parent value
+  useEffect(() => {
+    setHex(value || "#ffffff");
+  }, [value]);
+
+  const handleTextChange = (raw) => {
+    const val = raw.startsWith("#") ? raw : "#" + raw;
+    setHex(val);
+    if (isValidHex(val)) onChange(val); // push to canvasItems
+  };
+
+  const handleSwatchChange = (e) => {
+    setHex(e.target.value);
+    onChange(e.target.value); // always valid from native picker
+  };
+
+  const handlePreset = (preset) => {
+    setHex(preset);
+    onChange(preset);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        {/* Clickable color swatch that opens native picker */}
+        <div
+          className="relative h-9 w-9 shrink-0 rounded-lg border border-zinc-600 cursor-pointer overflow-hidden"
+          style={{ backgroundColor: isValidHex(hex) ? hex : "#ffffff" }}
+          onClick={() => swatchRef.current?.click()}
+        >
+          <input
+            ref={swatchRef}
+            type="color"
+            value={isValidHex(hex) ? hex : "#ffffff"}
+            onChange={handleSwatchChange}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          />
+        </div>
+
+        {/* Hex text field */}
+        <input
+          value={hex}
+          onChange={(e) => handleTextChange(e.target.value)}
+          placeholder="#ffffff"
+          maxLength={7}
+          spellCheck={false}
+          className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-100 font-mono outline-none focus:border-indigo-500 transition-colors"
+        />
+
+        {/* Live preview */}
+        <div
+          className="h-9 w-9 shrink-0 rounded-lg border border-zinc-700"
+          style={{ backgroundColor: isValidHex(hex) ? hex : "transparent" }}
+        />
+      </div>
+
+      {/* Preset swatches */}
+      <div className="flex flex-wrap gap-1.5 pt-1">
+        {PRESETS.map((preset) => (
+          <button
+            key={preset}
+            title={preset}
+            onClick={() => handlePreset(preset)}
+            className="h-5 w-5 rounded-md border border-zinc-700 hover:scale-110 transition-transform"
+            style={{ backgroundColor: preset }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SelectInput = ({ value, onChange, options }) => (
+  <select
+    value={value || ""}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors"
+  >
+    {options.map((opt) => (
+      <option key={opt.value} value={opt.value}>
+        {opt.label}
+      </option>
+    ))}
+  </select>
+);
+
+function SectionTitle({ children }) {
+  return (
+    <p
+      className="
+            text-xs
+            uppercase
+            tracking-widest
+            text-zinc-500
+            mt-8
+            mb-4
+        "
+    >
+      {children}
+    </p>
+  );
+}
+
+
+
+// ── Main component ───────────────────────────────────────────
+
+export default function PropertiesPanel({
+  selectedId,
+  setSelectedId,
+  activePage,
+  pages,
+  setPages,
+  activePageId,
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  const selectedItem = activePage?.canvasItems
+    ? findItemById(activePage.canvasItems, selectedId)
+    : null;
+
+  const update = (key, value) => {
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? { ...page, canvasItems: updateItemById(page.canvasItems, selectedId, (item) => ({ ...item, [key]: value })) }
+          : page
+      )
+    );
+  };
+
+  const updateGridDimensions = (columns, rows) => {
+    setPages((prev) =>
+      prev.map((page) =>
+        page.id === activePageId
+          ? {
+            ...page,
+            canvasItems: updateItemById(page.canvasItems, selectedId, (item) => {
+              const targetCount = Math.max(1, columns) * Math.max(1, rows);
+              const existing = item.children || [];
+              let newCells;
+              if (targetCount <= existing.length) {
+
+                newCells = existing.slice(0, targetCount);
+              } else {
+
+                newCells = [...existing, ...createGridCells(1, targetCount - existing.length)];
+              }
+              return { ...item, columns, rows, children: newCells };
+            }),
+          }
+          : page
+      )
+    );
+  };
+
+  if (!selectedItem) {
+    return (
+      <aside className="w-80 border-l border-zinc-800 bg-[#111111] p-4 overflow-y-auto">
+        <h2 className="text-sm font-semibold text-zinc-400 mb-6">Properties</h2>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
+          <div className="text-3xl mb-3">🎯</div>
+          <h3 className="font-medium mb-1 text-sm">No Selection</h3>
+          <p className="text-xs text-zinc-500 leading-relaxed">
+            Click any component on the canvas to edit its properties.
+          </p>
+        </div>
+      </aside>
+    );
+  }
+
+  const renderFields = () => {
+    switch (selectedItem.type) {
+      case "section":
+        return (
+          <>
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={0}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+            <Field label="Padding">
+              <NumberInput value={selectedItem.padding} onChange={(val) => update("padding", val)} min={0} max={200} unit="px" />
+            </Field>
+          </>
+        );
+
+      case "container":
+        return (
+          <>
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={0}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+            <Field label="Max Width">
+              <NumberInput value={selectedItem.maxWidth} onChange={(val) => update("maxWidth", val)} min={300} max={2000} unit="px" />
+            </Field>
+          </>
+        );
+      case "grid":
+        return (
+          <>
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={0}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+            <Field label="Columns">
+              <NumberInput
+                value={selectedItem.columns}
+                onChange={(val) => updateGridDimensions(val, selectedItem.rows || 1)}
+                min={1}
+                max={6}
+              />
+            </Field>
+            <Field label="Rows">
+              <NumberInput
+                value={selectedItem.rows || 1}
+                onChange={(val) => updateGridDimensions(selectedItem.columns, val)}
+                min={1}
+                max={6}
+              />
+            </Field>
+            <Field label="Gap">
+              <NumberInput
+                value={selectedItem.gap}
+                onChange={(val) => update("gap", val)}
+                min={0}
+                max={100}
+                unit="px"
+              />
+            </Field>
+          </>
+        );
+
+      case "heading":
+        return (
+          <>
+            <SectionTitle>
+              Content
+            </SectionTitle>
+            <Field label="Heading Text">
+              <TextInput
+                value={selectedItem.text}
+                onChange={(val) => update("text", val)}
+                placeholder="Heading text"
+              />
+            </Field>
+            <SectionTitle>
+              Typography
+            </SectionTitle>
+
+            <Field label="Heading Level">
+              <SelectInput
+                value={selectedItem.level}
+                onChange={(val) => {
+                  const fontSizeMap = {
+                    h1: 48,
+                    h2: 36,
+                    h3: 28,
+                    h4: 22,
+                    h5: 18,
+                    h6: 16,
+                  };
+
+                  setPages((prev) =>
+                    prev.map((page) =>
+                      page.id === activePageId
+                        ? {
+                          ...page,
+                          canvasItems: page.canvasItems.map((item) =>
+                            item.id === selectedId
+                              ? {
+                                ...item,
+                                level: val,
+                                fontSize: fontSizeMap[val],
+                              }
+                              : item
+                          ),
+                        }
+                        : page
+                    )
+                  );
+                }}
+                options={[
+                  { value: "h1", label: "H1 — Heading 1" },
+                  { value: "h2", label: "H2 — Heading 2" },
+                  { value: "h3", label: "H3 — Heading 3" },
+                  { value: "h4", label: "H4 — Heading 4" },
+                ]}
+              />
+            </Field>
+            <Field label="Font Size">
+              <NumberInput
+                value={selectedItem.fontSize}
+                onChange={(val) => update("fontSize", val)}
+                min={8}
+                max={120}
+                unit="px"
+              />
+            </Field>
+            <Field label="Color">
+              <ColorInput
+                value={selectedItem.color}
+                onChange={(val) => update("color", val)}
+              />
+            </Field>
+          </>
+        );
+
+      case "text":
+        return (
+          <>
+            <Field label="Content">
+              <textarea
+                value={selectedItem.content || ""}
+                onChange={(e) => update("content", e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 rounded-lg bg-zinc-800  border border-zinc-700 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors resize-none"
+              />
+            </Field>
+            <Field label="Font Size">
+              <NumberInput
+                value={selectedItem.fontSize}
+                onChange={(val) => update("fontSize", val)}
+                min={8}
+                max={72}
+                unit="px"
+              />
+            </Field>
+            <Field label="Color">
+              <ColorInput
+                value={selectedItem.color}
+                onChange={(val) => update("color", val)}
+              />
+            </Field>
+          </>
+        );
+
+      case "button":
+        return (
+          <>
+            <SectionTitle>
+              Content
+            </SectionTitle>
+
+            <Field label="Button Label">
+              <TextInput
+                value={selectedItem.label}
+                onChange={(val) => update("label", val)}
+                placeholder="Button label"
+              />
+            </Field>
+
+            <Field label="Button Link">
+              <TextInput
+                value={selectedItem.href || ""}
+                onChange={(val) => update("href", val)}
+                placeholder="/about"
+              />
+            </Field>
+
+            <SectionTitle>
+              Appearance
+            </SectionTitle>
+
+            <Field label="Variant">
+              <SelectInput
+                value={selectedItem.variant || "primary"}
+                onChange={(val) =>
+                  update("variant", val.trim())
+                } options={[
+                  { value: "primary", label: "Primary" },
+                  { value: "secondary", label: "Secondary" },
+                  { value: "outline", label: "Outline" },
+                  { value: "ghost", label: "Ghost" },
+                  { value: "danger", label: "Danger" },
+                  { value: "success", label: "Success" },
+                  { value: "warning", label: "Warning" },
+                  { value: "link", label: "Link" },
+                ]}
+              />
+            </Field>
+
+            <Field label="Background Color">
+              <ColorInput
+                value={selectedItem.bgColor}
+                onChange={(val) => update("bgColor", val)}
+              />
+            </Field>
+
+            <Field label="Text Color">
+              <ColorInput
+                value={selectedItem.color}
+                onChange={(val) => update("color", val)}
+              />
+            </Field>
+
+            {selectedItem.variant !== "ghost" &&
+              selectedItem.variant !== "link" && (
+                <>
+                  <Field label="Border Color">
+                    <ColorInput
+                      value={selectedItem.borderColor}
+                      onChange={(val) =>
+                        update("borderColor", val)
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Border Width">
+                    <NumberInput
+                      value={selectedItem.borderWidth || 1}
+                      onChange={(val) =>
+                        update("borderWidth", val)
+                      }
+                      min={0}
+                      max={10}
+                      unit="px"
+                    />
+                  </Field>
+
+                  <Field label="Border Style">
+                    <SelectInput
+                      value={
+                        selectedItem.borderStyle ||
+                        "solid"
+                      }
+                      onChange={(val) =>
+                        update("borderStyle", val)
+                      }
+                      options={[
+                        {
+                          value: "solid",
+                          label: "Solid",
+                        },
+                        {
+                          value: "dashed",
+                          label: "Dashed",
+                        },
+                        {
+                          value: "dotted",
+                          label: "Dotted",
+                        },
+                        {
+                          value: "double",
+                          label: "Double",
+                        },
+                        {
+                          value: "none",
+                          label: "None",
+                        },
+                      ]}
+                    />
+                  </Field>
+                </>
+              )}
+
+            <Field label="Border Radius">
+              <NumberInput
+                value={selectedItem.radius || 8}
+                onChange={(val) => update("radius", val)}
+                min={0}
+                max={50}
+                unit="px"
+              />
+            </Field>
+
+            <SectionTitle>
+              Typography
+            </SectionTitle>
+
+            <Field label="Font Size">
+              <NumberInput
+                value={selectedItem.fontSize || 16}
+                onChange={(val) => update("fontSize", val)}
+                min={8}
+                max={48}
+                unit="px"
+              />
+            </Field>
+
+            <Field label="Font Weight">
+              <SelectInput
+                value={selectedItem.fontWeight || "500"}
+                onChange={(val) =>
+                  update("fontWeight", val)
+                }
+                options={[
+                  {
+                    value: "400",
+                    label: "Regular",
+                  },
+                  {
+                    value: "500",
+                    label: "Medium",
+                  },
+                  {
+                    value: "600",
+                    label: "Semi Bold",
+                  },
+                  {
+                    value: "700",
+                    label: "Bold",
+                  },
+                ]}
+              />
+            </Field>
+
+            <Field label="Text Transform">
+              <SelectInput
+                value={
+                  selectedItem.textTransform ||
+                  "none"
+                }
+                onChange={(val) =>
+                  update("textTransform", val)
+                }
+                options={[
+                  {
+                    value: "none",
+                    label: "Normal",
+                  },
+                  {
+                    value: "uppercase",
+                    label: "UPPERCASE",
+                  },
+                  {
+                    value: "lowercase",
+                    label: "lowercase",
+                  },
+                  {
+                    value: "capitalize",
+                    label: "Capitalize",
+                  },
+                ]}
+              />
+            </Field>
+
+            <Field label="Letter Spacing">
+              <NumberInput
+                value={
+                  selectedItem.letterSpacing || 0
+                }
+                onChange={(val) =>
+                  update("letterSpacing", val)
+                }
+                min={0}
+                max={10}
+                unit="px"
+              />
+            </Field>
+
+            <SectionTitle>
+              Layout
+            </SectionTitle>
+
+            <Field label="Size">
+              <SelectInput
+                value={selectedItem.size || "md"}
+                onChange={(val) => update("size", val)}
+                options={[
+                  { value: "sm", label: "Small" },
+                  { value: "md", label: "Medium" },
+                  { value: "lg", label: "Large" },
+                ]}
+              />
+            </Field>
+          </>
+        );
+
+      case "image":
+        return (
+          <>
+            <SectionTitle>General</SectionTitle>
+
+            <Field label="Image URL">
+              <TextInput
+                value={selectedItem.src}
+                onChange={(val) => update("src", val)}
+                placeholder="https://..."
+              />
+            </Field>
+
+            <Field label="Alt Text">
+              <TextInput
+                value={selectedItem.alt}
+                onChange={(val) => update("alt", val)}
+                placeholder="Image description"
+              />
+            </Field>
+
+            <SectionTitle>Size</SectionTitle>
+
+            <Field label="Width">
+              <NumberInput
+                value={selectedItem.width}
+                onChange={(val) => update("width", val)}
+                min={10}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+
+            <Field label="Height">
+              <NumberInput
+                value={selectedItem.height}
+                onChange={(val) => update("height", val)}
+                min={10}
+                max={2000}
+                unit="px"
+              />
+            </Field>
+          </>
+        );
+
+      case "input":
+      case "textarea":
+        return (
+          <>
+            <SectionTitle>
+              Content
+            </SectionTitle>
+
+            <Field label="Label">
+              <TextInput
+                value={selectedItem.label}
+                onChange={(val) => update("label", val)}
+                placeholder="Field label"
+              />
+            </Field>
+            <Field label="Placeholder">
+              <TextInput
+                value={selectedItem.placeholder}
+                onChange={(val) => update("placeholder", val)}
+                placeholder="Placeholder text"
+                style={{ height: "32px", display: "overflow-y-scroll" }}
+              />
+            </Field>
+          </>
+        );
+      case "checkbox":
+        return (
+          <>
+            <SectionTitle>Content</SectionTitle>
+
+            <Field label="Label">
+              <TextInput
+                value={selectedItem.label}
+                onChange={(val) => update("label", val)}
+              />
+            </Field>
+          </>
+        );
+
+      case "radiobutton":
+        return (
+          <>
+            <SectionTitle>Content</SectionTitle>
+
+            <Field label="Option 1">
+              <TextInput
+                // value={selectedItem.options[0]}
+                value={selectedItem.options?.[0] || ""}
+                onChange={(val) => {
+                  const updated = [...selectedItem.options];
+
+                  updated[0] = val;
+
+                  update("options", updated);
+                }}
+              />
+            </Field>
+
+            <Field label="Option 2">
+              <TextInput
+                value={selectedItem.options[1]}
+                onChange={(val) => {
+                  const updated = [...selectedItem.options];
+
+                  updated[1] = val;
+
+                  update("options", updated);
+                }}
+              />
+            </Field>
+          </>
+        );
+
+      default:
+        return (
+          <p className="text-xs text-zinc-500">
+            No editable properties for this component.
+          </p>
+        );
+    }
+  };
+
+  function cloneWithNewIds(item) {
+    return {
+      ...item,
+      id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+      children: item.children ? item.children.map(cloneWithNewIds) : item.children,
+    };
+  }
+
+  const duplicateComponent = () => {
+    setPages((prev) =>
+      prev.map((page) => {
+        if (page.id !== activePageId) return page;
+        const original = findItemById(page.canvasItems, selectedId);
+        const loc = findLocation(page.canvasItems, selectedId);
+        if (!original || !loc) return page;
+        const copy = cloneWithNewIds(original);
+        return { ...page, canvasItems: insertAtTarget(page.canvasItems, loc.parentId, loc.index + 1, copy) };
+      })
+    );
+  };
+
+  const swapAtIndex = (arr, i, j) => {
+    const copy = [...arr];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    return copy;
+  };
+
+  const moveWithinParent = (direction) => {
+    setPages((prev) =>
+      prev.map((page) => {
+        if (page.id !== activePageId) return page;
+        const loc = findLocation(page.canvasItems, selectedId);
+        if (!loc) return page;
+        const targetIndex = loc.index + direction;
+
+        if (loc.parentId === null) {
+          if (targetIndex < 0 || targetIndex >= page.canvasItems.length) return page;
+          return { ...page, canvasItems: swapAtIndex(page.canvasItems, loc.index, targetIndex) };
+        }
+
+        const parent = findItemById(page.canvasItems, loc.parentId);
+        if (!parent || targetIndex < 0 || targetIndex >= (parent.children?.length || 0)) return page;
+
+        return {
+          ...page,
+          canvasItems: updateItemById(page.canvasItems, loc.parentId, (p) => ({
+            ...p,
+            children: swapAtIndex(p.children, loc.index, targetIndex),
+          })),
+        };
+      })
+    );
+  };
+
+  const moveUp = () => moveWithinParent(-1);
+  const moveDown = () => moveWithinParent(1);
+
+  return (
+  <aside className={`${collapsed ? "w-16" : "w-80"} shrink-0 transition-all duration-200 border-l border-zinc-800 bg-[#111111] overflow-y-auto relative flex flex-col`}>
+  
+  {/* Collapse Toggle Button */}
+  <button
+    onClick={() => setCollapsed((v) => !v)}
+    className={`absolute top-4 z-20 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-all duration-200 ${
+      collapsed ? "left-1/2 -translate-x-1/2" : "left-3"
+    }`}
+  >
+    {collapsed ? <FiChevronLeft size={16} /> : <FiChevronRight size={16} />}
+  </button>
+
+  {collapsed ? (
+    /* --- ENHANCED MINI SIDEBAR STATE --- */
+    <div className="flex flex-col items-center pt-16 pb-4 h-full justify-between flex-1 select-none">
+      
+      {/* Top: Active Component Indicator Icon */}
+      <div className="flex flex-col items-center gap-1">
+        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs uppercase" title={`Active: ${selectedItem?.type || 'None'}`}>
+          {selectedItem?.type ? selectedItem.type.substring(0, 2) : "--"}
+        </div>
+      </div>
+
+      {/* Middle: Rotating Vertical Label */}
+      {selectedItem && (
+        <div className="rotate-180 [writing-mode:vertical-lr] text-zinc-500 text-xs font-medium tracking-wide my-4 opacity-60">
+          Properties Panel
+        </div>
+      )}
+
+      {/* Bottom: Quick Action Icon Strips */}
+      <div className="flex flex-col items-center gap-3 border-t border-zinc-800/60 pt-4 w-full">
+        <button
+          onClick={moveUp}
+          title="Move Up"
+          className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+        >
+          <MdMoveUp size={18} />
+        </button>
+        <button
+          onClick={moveDown}
+          title="Move Down"
+          className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+        >
+          <MdMoveDown size={18} />
+        </button>
+        <button
+          onClick={duplicateComponent}
+          title="Duplicate Component"
+          className="p-2 rounded-lg text-indigo-400 hover:bg-indigo-950/40 hover:text-indigo-300 transition-colors"
+        >
+          <IoDuplicate size={18} />
+        </button>
+        <button
+          onClick={() => {
+            setPages((prev) =>
+              prev.map((page) => {
+                if (page.id !== activePageId) return page;
+                const { items } = removeItemById(page.canvasItems, selectedId);
+                return { ...page, canvasItems: items };
+              })
+            );
+            setSelectedId(null);
+          }}
+          title="Delete Component"
+          className="p-2 rounded-lg text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-colors"
+        >
+          <MdDeleteForever size={18} />
+        </button>
+      </div>
+
+    </div>
+  ) : (
+    /* --- STANDARD EXPANDED STATE --- */
+    <div className="p-4 pt-4 flex-1">
+      <div className="flex items-center justify-between mb-6 pl-8"> 
+        <div className="sticky top-0 z-10 bg-[#0F0F0F] pb-4 border-b border-zinc-800 w-full">
+          <h2 className="text-lg font-semibold">Properties</h2>
+
+          {selectedItem && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs uppercase">
+                {selectedItem.type}
+              </span>
+              <span className="text-zinc-500 text-sm">Selected Component</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>{renderFields()}</div>
+
+      <SectionTitle>Actions</SectionTitle>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button
+          onClick={() => {
+            setPages((prev) =>
+              prev.map((page) => {
+                if (page.id !== activePageId) return page;
+                const { items } = removeItemById(page.canvasItems, selectedId);
+                return { ...page, canvasItems: items };
+              })
+            );
+            setSelectedId(null);
+          }}
+          className="mt-6 bg-red-600 hover:bg-red-500 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Delete</span>
+          <MdDeleteForever size={18} />
+        </button>
+
+        <button
+          onClick={duplicateComponent}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Duplicate</span>
+          <IoDuplicate size={18} className="text-center" />
+        </button>
+        <button
+          onClick={moveUp}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Move Up</span>
+          <MdMoveUp size={18} />
+        </button>
+        <button
+          onClick={moveDown}
+          className="mt-6 bg-indigo-500 hover:bg-indigo-600 rounded-lg p-2 flex gap-2 justify-center items-center"
+        >
+          <span>Move Down</span>
+          <MdMoveDown size={18} />
+        </button>
+      </div>
+    </div>
+  )}
+</aside>
+  );
+}
+
+
+"use client";
+
+import React from "react";
+import { useDraggable } from "@dnd-kit/core";
+
+export default function SidebarItem({
+  componentName,
+  implemented,
+  onAdd,
+  icon: Icon,
+  children,
+}) {
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id: `sidebar-${componentName}`,
+    data: {
+      source: "sidebar",
+      component: componentName,
+    },
+    disabled: !implemented,
+  });
+
+  console.log("SidebarItem:", componentName, listeners);
+  return (
+    <button
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      onClick={() => onAdd(componentName)}
+      disabled={!implemented}
+      className={`
+        w-full
+        text-left
+        p-3
+        rounded-xl
+        border
+        transition-all
+        duration-200
+        hover:-translate-y-0.5
+        ${
+          implemented
+            ? `
+              border-zinc-800
+              bg-zinc-900
+              hover:border-indigo-500/40
+              hover:bg-zinc-800/50
+              cursor-grab
+              active:cursor-grabbing
+            `
+            : `
+              border-zinc-900
+              bg-zinc-950
+              text-zinc-600
+              cursor-not-allowed
+            `
+        }
+      `}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {Icon && (
+            <Icon
+              size={18}
+              className={
+                implemented
+                  ? "text-zinc-400"
+                  : "text-zinc-700"
+              }
+            />
+
+          )}
+
+          <span>{componentName}</span>
+        </div>
+
+        {!implemented ? (
+          <span className="text-[10px] px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">
+            Coming Soon
+          </span>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-zinc-600"
+          >
+            <circle cx="9" cy="6" r="1.5" />
+            <circle cx="15" cy="6" r="1.5" />
+            <circle cx="9" cy="12" r="1.5" />
+            <circle cx="15" cy="12" r="1.5" />
+            <circle cx="9" cy="18" r="1.5" />
+            <circle cx="15" cy="18" r="1.5" />
+          </svg>
+        )}
+      </div>
+
+      {children}
+    </button>
+  );
+}
+
+"use client";
+
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+export default function SortableItem({
+  id,
+  children,
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(
+      transform
+    ),
+    transition,
+  };
+
+  console.log("SortableItem", id);
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+    >
+      {children}
+    </div>
+  );
+}
+
+
+export function removeItemById(items, id) {
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      const removed = items[i];
+      const newItems = [...items.slice(0, i), ...items.slice(i + 1)];
+      return { items: newItems, removed };
+    }
+    if (items[i].children?.length) {
+      const result = removeItemById(items[i].children, id);
+      if (result.removed) {
+        const newItems = items.map((it, idx) =>
+          idx === i ? { ...it, children: result.items } : it,
+        );
+        return { items: newItems, removed: result.removed };
+      }
+    }
+  }
+  return { items, removed: null };
+}
+
+export function insertAtTarget(items, containerId, targetIndex, newItem) {
+  if (containerId === null) {
+    const copy = [...items];
+    copy.splice(targetIndex, 0, newItem);
+    return copy;
+  }
+  return items.map((it) => {
+    if (it.id === containerId) {
+      const children = it.children ? [...it.children] : [];
+      children.splice(targetIndex, 0, newItem);
+      return { ...it, children };
+    }
+    if (it.children?.length) {
+      return {
+        ...it,
+        children: insertAtTarget(
+          it.children,
+          containerId,
+          targetIndex,
+          newItem,
+        ),
+      };
+    }
+    return it;
+  });
+}
+
+export function findLocation(items, id, parentId = null) {
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].id === id) return { parentId, index: i };
+    if (items[i].children?.length) {
+      const found = findLocation(items[i].children, id, items[i].id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export function findItemById(items, id) {
+  for (const it of items) {
+    if (it.id === id) return it;
+    if (it.children?.length) {
+      const found = findItemById(it.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export function updateItemById(items, id, updater) {
+  return items.map((it) => {
+    if (it.id === id) return updater(it);
+    if (it.children?.length) {
+      return { ...it, children: updateItemById(it.children, id, updater) };
+    }
+    return it;
+  });
+}
+
+const resizeHeight = (item, dy) => {
+  setPages((prev) =>
+    prev.map((page) =>
+      page.id !== activePageId
+        ? page
+        : {
+            ...page,
+            canvasItems: updateItemById(page.canvasItems, item.id, (it) => ({
+              ...it,
+              height: Math.max(40, (it.height || 100) + dy),
+            })),
+          }
+    )
+  );
+};

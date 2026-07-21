@@ -50,21 +50,26 @@ function LayerRow({ item, depth, selectedId, setSelectedId }) {
 
 export default function LayersPanel({ canvasItems, selectedId, setSelectedId }) {
   return (
-    <aside className="w-64 border-r border-zinc-800 bg-[#111111] p-4 overflow-y-auto">
-      <h2 className="text-sm font-semibold text-zinc-300 mb-4">Layers</h2>
-      {canvasItems.length === 0 ? (
-        <p className="text-xs text-zinc-600">No elements yet</p>
-      ) : (
-        canvasItems.map((item) => (
-          <LayerRow
-            key={item.id}
-            item={item}
-            depth={0}
-            selectedId={selectedId}
-            setSelectedId={setSelectedId}
-          />
-        ))
-      )}
-    </aside>
+     <div className="mt-4">
+            <h2 className="text-sm font-semibold text-zinc-300 mb-4">
+                Layers
+            </h2>
+
+            {canvasItems.length === 0 ? (
+                <p className="text-xs text-zinc-600">
+                    No elements yet
+                </p>
+            ) : (
+                canvasItems.map((item) => (
+                    <LayerRow
+                        key={item.id}
+                        item={item}
+                        depth={0}
+                        selectedId={selectedId}
+                        setSelectedId={setSelectedId}
+                    />
+                ))
+            )}
+        </div>
   );
 }

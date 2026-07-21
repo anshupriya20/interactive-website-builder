@@ -489,20 +489,21 @@ import {
     DragOverlay,
     pointerWithin,
     rectIntersection,
+    MeasuringStrategy,
 } from "@dnd-kit/core";
 
 import BuilderNavbar from "./BuilderNavbar";
-import BuilderSidebar from "./BuilderSidebar";
-import BuilderCanvas from "./BuilderCanvas";
-import PropertiesPanel from "./PropertiesPanel";
-import PageSidebar from "./PageSidebar";
+import BuilderSidebar from "../sidebar/BuilderSidebar";
+import BuilderCanvas from "../canvas/BuilderCanvas";
+import PropertiesPanel from "../PropertiesPanel";
+import PageSidebar from "../sidebar/PageSidebar";
 import {
     removeItemById,
     insertAtTarget,
     findLocation,
     findItemById,
-} from "../utils/treeUtils";
-import { componentTemplates, createGridCells } from "./componentTemplates";
+} from "../../utils/treeUtils";
+import { componentTemplates, createGridCells } from "../componentTemplates";
 
 function collisionDetectionStrategy(args) {
     const pointerCollisions = pointerWithin(args);
@@ -599,95 +600,12 @@ export default function BuilderLayout() {
         setActiveDragData(event.active.data.current);
     };
 
-    // const handleDragEnd = (event) => {
-    //     const { active, over } = event;
-    //     setActiveDragData(null);
-    //     if (!over) return;
 
-    //     const activeData = active.data.current;
-    //     const overData = over.data.current;
-    //     const isFromSidebar = activeData?.source === "sidebar";
-
-    //     setPages((prev) =>
-    //         prev.map((page) => {
-    //             if (page.id !== activePageId) return page;
-
-    //             const items = page.canvasItems;
-
-    //             // ---- 1. Figure out WHERE we're dropping: containerId (null = root) + index ----
-    //             let targetContainerId = null;
-    //             let targetIndex = items.length;
-
-    //             if (overData?.type === "container-dropzone") {
-    //                 // Dropped directly into a Section/Container/Grid-cell's content area
-    //                 targetContainerId = overData.containerId;
-    //                 const containerItem = findItemById(items, targetContainerId);
-    //                 targetIndex = containerItem?.children?.length || 0;
-    //             } else if (overData?.type === "canvas-root") {
-    //                 // Dropped on empty canvas / below everything at top level
-    //                 targetContainerId = null;
-    //                 targetIndex = items.length;
-    //             } else {
-    //                 // Dropped on/near an existing item — insert as its sibling, at its position
-    //                 const loc = findLocation(items, over.id);
-    //                 if (!loc) return page;
-    //                 targetContainerId = loc.parentId;
-    //                 targetIndex = loc.index;
-    //             }
-
-    //             // ---- 2a. Sidebar -> Canvas: create a brand new component ----
-    //             if (isFromSidebar) {
-    //                 const componentName = activeData.component;
-    //                 const template = componentTemplates[componentName];
-    //                 if (!template) return page;
-
-    //                 const newComponent = {
-    //                     id: Date.now().toString(),
-    //                     name: componentName,
-    //                     ...template,
-    //                     ...(template.children !== undefined ? { children: [] } : {}),
-    //                 };
-
-    //                 const newItems = insertAtTarget(
-    //                     items,
-    //                     targetContainerId,
-    //                     targetIndex,
-    //                     newComponent
-    //                 );
-    //                 return { ...page, canvasItems: newItems };
-    //             }
-
-    //             // ---- 2b. Canvas -> Canvas: moving/reordering an existing item ----
-    //             if (active.id === over.id) return page;
-
-    //             const { items: itemsAfterRemoval, removed } = removeItemById(
-    //                 items,
-    //                 active.id
-    //             );
-    //             if (!removed) return page;
-
-    //             // Guard: don't let a container be dropped inside its own descendant
-    //             if (removed.children?.length) {
-    //                 const draggedIntoOwnChild = findItemById(
-    //                     [removed],
-    //                     targetContainerId
-    //                 );
-    //                 if (draggedIntoOwnChild) return page;
-    //             }
-
-    //             const finalItems = insertAtTarget(
-    //                 itemsAfterRemoval,
-    //                 targetContainerId,
-    //                 targetIndex,
-    //                 removed
-    //             );
-    //             return { ...page, canvasItems: finalItems };
-    //         })
-    //     );
-    // };
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
+        console.log("DROP →", { activeId: active.id, overId: over?.id, overData: over?.data.current });
+
         setActiveDragData(null);
         if (!over) return;
 
@@ -809,20 +727,29 @@ export default function BuilderLayout() {
                     <DndContext
                         sensors={sensors}
                         collisionDetection={collisionDetectionStrategy}
+                        measuring={{
+                            droppable: {
+                                strategy: MeasuringStrategy.Always,
+                            },
+                        }}
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
                     >
-                        <PageSidebar
+                        {/* <PageSidebar
                             pages={pages}
                             activePageId={activePageId}
                             setActivePageId={setActivePageId}
                             setPages={setPages}
-                        />
+                        /> */}
 
                         <BuilderSidebar
                             pages={pages}
                             setPages={setPages}
                             activePageId={activePageId}
+                            setActivePageId={setActivePageId}
+                            canvasItems={activePage?.canvasItems || []}
+                            selectedId={selectedId}
+                            setSelectedId={setSelectedId}
                         />
 
                         <BuilderCanvas
