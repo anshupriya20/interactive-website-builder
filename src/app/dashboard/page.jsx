@@ -1,4 +1,4 @@
-import DashboardPage from "../components/UserDashboard/Page";
+import UserDashboardPage from "../components/UserDashboard/Page";
 
 export const metadata = {
   title: "Dashboard — CraftSite",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function DashboardRoute() {
-  return <DashboardPage />;
+  return <UserDashboardPage />;
 }

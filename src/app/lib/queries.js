@@ -18,7 +18,15 @@ import {
   publishProject,
 } from "./projectApi";
 
-// ── Queries (reads) ──
+import {
+  getAllUsers,
+  getUserById,
+  updateUserRole,
+  updateUserPlan,
+  deleteUser,
+} from "./adminApi";
+
+// ========================USER API=========================
 export const useCurrentUser = () =>
   useQuery({ queryKey: ["me"], queryFn: getCurrentUser, retry: false });
 
@@ -85,6 +93,18 @@ export const useUpdateUserDetails = () => {
   });
 };
 
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: logoutUser,
+    onSuccess: () => {
+      queryClient.setQueryData(["me"], null); // instantly clear cached user
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+};
+
+// =========================PROJECT API=========================
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -96,7 +116,7 @@ export const useCreateProject = () => {
 export const useUpdateProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id,data) => updateProject(id, data),
+    mutationFn: (id, data) => updateProject(id, data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["projects", id] }),
   });
@@ -121,13 +141,40 @@ export const usePublishProject = () => {
   });
 };
 
-export const useLogout = () => {
+// =========================ADMIN API=========================
+export const useAllUsers = () =>
+  useQuery({ queryKey: ["admin", "users"], queryFn: getAllUsers });
+
+export const useUserById = (id) =>
+  useQuery({
+    queryKey: ["admin", "users", id],
+    queryFn: () => getUserById(id),
+    enabled: !!id,
+  });
+
+export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: logoutUser,
-    onSuccess: () => {
-      queryClient.setQueryData(["me"], null); // instantly clear cached user
-      queryClient.invalidateQueries({ queryKey: ["me"] });
-    },
+    mutationFn: ({ id, role }) => updateUserRole(id, role),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+  });
+};
+
+export const useUpdateUserPlan = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, plan }) => updateUserPlan(id, plan),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+  });
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => deleteUser(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 };

@@ -61,27 +61,51 @@ export default function AuthScreen() {
   const loginMutation = useLogin();
   const registerMutation = useRegister();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
 
-    if (mode === "login") {
-      loginMutation.mutate(
-        { email, password },
-        {
-          onSuccess: () => router.replace("/dashboard"),
-        }
-      );
-    } else {
-      registerMutation.mutate(
-        { name: regName, email: regEmail, password: regPassword },
-        {
-          onSuccess: () => router.replace("/dashboard"),
-        }
-      );
-    }
+  //   if (mode === "login") {
+  //     loginMutation.mutate(
+  //       { email, password },
+  //       {
+  //         onSuccess: () => router.replace("/dashboard"),
+  //       }
+  //     );
+  //   } else {
+  //     registerMutation.mutate(
+  //       { name: regName, email: regEmail, password: regPassword },
+  //       {
+  //         onSuccess: () => router.replace("/dashboard"),
+  //       }
+  //     );
+  //   }
+  // };
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: (data) => {
+          const role = data.user.role;
+          router.replace(role === "admin" ? "/admin" : "/dashboard");
+        },
+      }
+    );
   };
 
-
+  const handleRegisterSubmit = (e) => {
+  e.preventDefault();
+  registerMutation.mutate(
+    { name: regName, email: regEmail, password: regPassword },
+    {
+      onSuccess: (data) => {
+        const role = data.user.role;
+        router.replace(role === "admin" ? "/admin" : "/dashboard");
+      },
+    }
+  );
+};
   return (
     <div
       className={`${fraunces.variable} ${grotesk.variable} relative min-h-screen w-full overflow-hidden bg-[#0d0e1a] font-[family-name:var(--font-body)]`}
@@ -169,7 +193,7 @@ export default function AuthScreen() {
 
                   <form
                     className="flex flex-col gap-4"
-                    onSubmit={(e) => handleSubmit(e)}
+                    onSubmit={(e) => handleLoginSubmit(e)}
                   >
                     <Field custom={0} label="Email" htmlFor={`${uid}-l-email`}>
                       <input
@@ -248,7 +272,7 @@ export default function AuthScreen() {
 
                   <form
                     className="flex flex-col gap-4"
-                    onSubmit={(e) => handleSubmit(e)}
+                    onSubmit={(e) => handleRegisterSubmit(e)}
                   >
                     <Field custom={0} label="Full name" htmlFor={`${uid}-r-name`}>
                       <input
